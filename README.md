@@ -43,6 +43,21 @@ cmake ..
 make
 ```
 
+### Dependencies
+At the moment dependencies have to be installed locally. In the future they
+will be included in some form of `Engine/External` folder, so the user will not
+have to worry about installing them themselves.\
+But for now you need:
+
+```
+cmake >= 3.16
+glfw3 == 3.3
+nlohmann/json.hpp
+```
+
+This will only increase as we add Vulkan, glm, shaders etc. dependencies.
+
+
 ## Running
 From now from `build` folder.
 In the future the build will be with an `install` option that will distribute
@@ -59,3 +74,4 @@ ctest --verbose
 cd Game
 ./Sandbox
 ```
+
