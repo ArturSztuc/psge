@@ -89,23 +89,21 @@ TEST(EventSystemTests, EventSystemTests)
   Object obj5;
   obj5.m_id = 5;
 
-  EventSystem::GetInstance().RegisterHandler(EVENT_TYPE_COLLISION,
-      std::bind(&Object::HandleCollision, &obj1, std::placeholders::_1));
+  // Register the event handler. Perhaps this could be done inside of the class
+  // itself? Constructor? Created object would register itself?
+  EVENT_REGISTER(EVENT_TYPE_COLLISION, Object::HandleCollision, obj1);
+  EVENT_REGISTER(EVENT_TYPE_COLLISION, Object::HandleCollision, obj2);
+  EVENT_REGISTER(EVENT_TYPE_COLLISION, Object::HandleCollision, obj3);
+  EVENT_REGISTER(EVENT_TYPE_COLLISION, Object::HandleCollision, obj4);
+  EVENT_REGISTER(EVENT_TYPE_COLLISION, Object::HandleCollision, obj5);
 
-  EventSystem::GetInstance().RegisterHandler(EVENT_TYPE_COLLISION,
-      std::bind(&Object::HandleCollision, &obj2, std::placeholders::_1));
-
-  EventSystem::GetInstance().RegisterHandler(EVENT_TYPE_COLLISION,
-      std::bind(&Object::HandleCollision, &obj3, std::placeholders::_1));
-
-  EventSystem::GetInstance().RegisterHandler(EVENT_TYPE_COLLISION,
-      std::bind(&Object::HandleCollision, &obj4, std::placeholders::_1));
-
-  EventSystem::GetInstance().RegisterHandler(EVENT_TYPE_COLLISION,
-      std::bind(&Object::HandleCollision, &obj5, std::placeholders::_1));
-
+  // Create collide-type event
   CollideEvent collide(0, 1, 10, 20, 10, -20);
-  EventSystem::GetInstance().SendEvent(collide);
+
+  // Fire the event
+  EVENT_FIRE(collide);
+
+  // Update a few times
   EventSystem::GetInstance().Update();
   EventSystem::GetInstance().Update();
   EventSystem::GetInstance().Update();

@@ -6,8 +6,8 @@ EventSystem& EventSystem::GetInstance()
     return instance;
 };
 
-  void EventSystem::RegisterHandler(EventType _type,
-                                    EventFunction _handler)
+  void EventSystem::Subscribe(const EventType& _type,
+                              EventFunction&& _handler)
   {
     m_handlers[_type].push_back(_handler);
   };
@@ -27,8 +27,9 @@ void EventSystem::Update()
       continue;
     }
 
+    // TODO: Should we implement a separate type of event loop for ECS?
     Event event = m_queue.Pop();
-    for(auto& handler : m_handlers[event.GetType()]){
+    for(auto&& handler : m_handlers[event.GetType()]){
       handler(event);
     }
   }
