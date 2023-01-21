@@ -10,11 +10,15 @@ public:
   CollideEvent(U32 _id1, U32 _id2, F32 _m1, F32 _m2, F32 _v1, F32 _v2)
     :Event(EVENT_TYPE_COLLISION, 2)
   {
+    // Object IDs
     m_args[0].m_U32[0] = _id1;
     m_args[0].m_U32[1] = _id2;
 
+    // Object 1 mass and 1D velocity
     m_args[1].m_F32[0] = _m1;
     m_args[1].m_F32[1] = _v1;
+
+    // Object 2 mass and 1D velocity
     m_args[1].m_F32[2] = _m2;
     m_args[1].m_F32[3] = _v2;
   }
@@ -34,25 +38,26 @@ struct Object
   F32 m_mass;
   F32 m_speed;
 
+  // Handler! This could be e.g. OnEvent etc.
   void HandleCollision(const Event& _event)
   {
+    // Cast to a collision object
     const CollideEvent& collision = static_cast<const CollideEvent&>(_event);
-    if(!(collision.GetId1() == m_id || collision.GetId2() == m_id ))
-    {
+
+    // Don't continue if wrong object chosen
+    if(!(collision.GetId1() == m_id || collision.GetId2() == m_id )){
       // TODO: Ideally we would want to implement the event system in a way that this will never ever be triggered...
       std::cout << "NOPE!" << std::endl;
       return;
     }
 
+    // Calculate the change in speed after the collision
     F32 mSum = (collision.GetMass1() + collision.GetMass2());
-
-    if(collision.GetId1() == m_id)
-    {
+    if(collision.GetId1() == m_id){
       F32 mDiff = (collision.GetMass1() - collision.GetMass2());
       m_speed = (mDiff/mSum)*collision.GetSpeed1() + (2.0f*collision.GetMass2()/mSum)*collision.GetSpeed2();
     }
-    else if(collision.GetId2() == m_id)
-    {
+    else if(collision.GetId2() == m_id){
       F32 mDiff = (collision.GetMass2() - collision.GetMass1());
       m_speed = (mDiff/mSum)*collision.GetSpeed2() + (2.0f*collision.GetMass1()/mSum)*collision.GetSpeed1();
     }
@@ -75,6 +80,7 @@ TEST(EventSystemTests, EventTests)
 
 TEST(EventSystemTests, EventSystemTests)
 {
+  // Create a few objects with specific masses
   Object obj1;
   Object obj2;
   obj1.m_id = 0;

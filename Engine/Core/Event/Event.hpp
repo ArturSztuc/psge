@@ -17,11 +17,12 @@ struct EventVar
   };
 
   // Type of cariable
+  // TODO: Currently not used. Make all of these private and write make GetAsType functions? With SetAsType and GetTyoe?
   Type m_type;
 
   // Variable value union
   // TODO: Do we need to pad Bool to be 32bit?
-  // TODO: What if we want 62bit?
+  // TODO: What if we want 64bit?
   // TODO: Add string somehow?
   union
   {
@@ -44,6 +45,7 @@ struct EventVar
 
 // TODO: Either make all the data members private, or remove this GetType()
 // TODO: Making data private can be tough, need a way to add EventVar arguments
+// TODO: Probably need some form of bool to see if the event was handled, and if so, remove it from the memory.
 class Event
 {
   public:
@@ -60,12 +62,3 @@ class Event
     U8        m_numArgs;
     EventVar  m_args[MAX_ARGS];
 };
-
-//class CollisionEvent : public Event
-//{
-//  public:
-//    CollisionEvent(U32 _obj1, U32 _obj2);
-//
-//    U32 GetObject1() const;
-//    U32 GetObject2() const;
-//};
