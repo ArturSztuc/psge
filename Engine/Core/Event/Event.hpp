@@ -1,8 +1,21 @@
+/**
+ * @file Event.hpp
+ * @brief Contains event class used for messaging
+ * @author Artur Sztuc <artursztuc@googlemail.com>
+ * @date 2023-01-21
+ *
+ * @see EventVar
+ * @see Event
+ */
 #pragma once
 
 #include "Core/Event/EventTypes.h"
 #include "defines.h"
 
+/**
+ * @struct EventVar
+ * @brief Event's data holder -- union
+ */
 struct EventVar
 {
   // TODO: Add string... needs to be our own?
@@ -43,22 +56,46 @@ struct EventVar
   };
 };
 
-// TODO: Either make all the data members private, or remove this GetType()
-// TODO: Making data private can be tough, need a way to add EventVar arguments
-// TODO: Probably need some form of bool to see if the event was handled, and if so, remove it from the memory.
+/**
+ * @class Event
+ * @brief Event used for messaging
+ *
+ * Event class used with the event system for sending messages and events
+ *
+ * @todo TODO: Either make all the data members private, or remove this GetType()
+ * @todo TODO: Making data private can be tough, need a way to add EventVar arguments
+ * @todo TODO: Probably need some form of bool to see if the event was handled, and if so, remove it from the memory.
+ */
 class Event
 {
   public:
+    /**
+     * @brief Event constructor
+     * @param _type type of event. @see EventType
+     * @param _numArgs number of data arguments in this event
+     */
     Event(EventType _type, U8 _numArgs);
 
+    /// Default deconstructor
     virtual ~Event();
 
+    /**
+     * @brief Returns the event's type
+     * @return Event's type @see EventType
+     */
     EventType GetType();
 
   protected:
+    /// Maximum number of arguments in the Event.
     static const U32 MAX_ARGS = 4;
+
+    /// Event type
     EventType m_type;
-    // TODO: not using this anywhere?
+
+    /// Number of arguments in this event
+    /// @todo TODO: not using this anywhere?
     U8        m_numArgs;
+
+    /// Data holder for this event
     EventVar  m_args[MAX_ARGS];
 };

@@ -1,3 +1,4 @@
+/// Prototype, no documentation for now.
 #pragma once
 
 #include "defines.h"

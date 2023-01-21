@@ -1,5 +1,6 @@
 /**
  * @file Stack.hpp
+ * @brief This is a prototype, so no documentation yet. Might be removed anyway.
  */
 
 #pragma once

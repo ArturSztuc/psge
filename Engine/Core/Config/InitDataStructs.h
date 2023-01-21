@@ -3,6 +3,8 @@
 #include <string>
 #include "Core/Config/ConfigParser.h"
 
+// I don't like this, so no documentation for now.
+// TODO: Rewrite completely, this should be inside some default json config file to be loaded if there's no user-defined one.
 struct EngineInit
 {
   std::string m_title         = "Application";
