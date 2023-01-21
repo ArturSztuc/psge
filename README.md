@@ -30,7 +30,7 @@ psge
 `Application` and have a function `Application* CreateApplication()` that links
 to the entry point.\
 The entry point is inside of the `Engine/Application` folder.\
-`UnitTests` contains unit tests written with a help of GoogleTest framework.
+`UnitTests` contains unit tests written with a help of GoogleTest framework.\
 All the objects inside of the `Engine` should to have their own unit tests
 there.
 

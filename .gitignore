@@ -1,1 +1,8 @@
-**/.ycm_extra_conf.py
+# Files
+*.ycm_extra_conf.py
+*.swp
+
+# Folders
+*.cache/
+build/
+
