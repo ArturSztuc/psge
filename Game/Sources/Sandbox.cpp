@@ -14,11 +14,30 @@ public:
 
   void OnUserCreate()
   {
+    LTRACE("Custom OnUserCreate() fired");
+    EVENT_REGISTER(EVENT_TYPE_KEYBOARD_INPUT, Sandbox::OnKeyboardEvent, *this);
   };
 
   void OnUserUpdate(double delta)
   {
   };
+
+  void OnKeyboardEvent(const Event& _event)
+  {
+    LTRACE("Keyboard event fired!");
+    const KeyboardEvent& keyboardEvent = static_cast<const KeyboardEvent&>(_event);
+
+    KeyboardKeyCode code = keyboardEvent.GetCode();
+
+    if(code == KEY_ESC){
+      m_shouldClose = true;
+      LDEBUG("KEY_ESC fired, application will close");
+    }
+  }
+
+  void OnEvent(const Event& _event)
+  {
+  }
 };
 
 // Link to the application's entry point

@@ -23,6 +23,8 @@ Application::Application(const std::string& _configfile)
 
 Application::~Application()
 {
+  LINFO("Application deconstructed gracefully");
+  LOGS_SAVE();
 };
 
 void Application::Run()
@@ -37,7 +39,7 @@ void Application::Run()
     ShouldLoopClose();
 
     // Update user input
-    //processInput();
+    UpdateInput();
 
     // Time update
     UpdateClock();
@@ -53,6 +55,8 @@ void Application::Run()
 
     LOGS_SAVE();
   }
+  LINFO("Application loop completed gracefully");
+  LOGS_SAVE();
 }
 
 void Application::Initialize()
@@ -60,7 +64,11 @@ void Application::Initialize()
   LDEBUG("Running OnUserCreate");
   OnUserCreate();
 
+  LDEBUG("Initializing the clock");
   UpdateClock();
+
+  LDEBUG("Initializing the keyboard system");
+  KeyboardSystem::GetInstance(m_window.GetWindow());
 }
 
 void Application::ShouldLoopClose()
@@ -80,7 +88,16 @@ void Application::UpdateGameState()
   OnUserUpdate(m_deltaTime);
 
   // Update EntityComponentSystem
-  ECS().Update(m_deltaTime);
+  ECSManager::GetInstance().Update(m_deltaTime);
+
+  // Update the event system
+  EventSystem::GetInstance().Update();
+}
+
+void Application::UpdateInput()
+{
+  // TODO: Need to change the behaviour of this singleton to have GLFW initializer and normal GetInstance.
+  KeyboardSystem::GetInstance(m_window.GetWindow()).Update();
 }
 
 };

@@ -1,6 +1,8 @@
 #include "Core/Logging/Logger.hpp"
 #include "Core/Logging/LogManager.hpp"
 
+#include "Core/Inputs/KeyboardSystem.hpp"
+
 #include "Core/Timing/Clock.hpp"
 
 #include "Core/Memory/Allocator.hpp"

@@ -120,6 +120,12 @@ protected:
    */
   void UpdateGameState();
 
+  /** 
+   * @brief Polls for the input events
+   */
+  void UpdateInput();
+
+
 
 protected:
   /// Checks if the game simulation should close
