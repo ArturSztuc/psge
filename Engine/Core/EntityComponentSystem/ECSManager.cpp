@@ -74,9 +74,6 @@ void ECSManager::RemoveComponent(Entity* _entity)
   m_components[typeid(C)].erase(_entity->GetId());
 }
 
-//template <typename C>
-//std::unordered_map<unsigned int, ComponentBase*> GetComponents();
-
 template <typename C>
 C* ECSManager::GetComponent(Entity* _entity)
 {

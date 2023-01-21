@@ -125,8 +125,6 @@ protected:
    */
   void UpdateInput();
 
-
-
 protected:
   /// Checks if the game simulation should close
   bool        m_shouldClose;

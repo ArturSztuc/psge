@@ -7,6 +7,7 @@
 
 // We need to pre-define all of them here to have separete
 // .cpp file
+// TODO: Need to try padding them to actual number of bits...
 template class String<4>;
 template class String<8>;
 template class String<16>;
