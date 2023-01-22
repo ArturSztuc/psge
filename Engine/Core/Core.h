@@ -23,4 +23,4 @@
 #include "Core/EntityComponentSystem/ECSManager.hpp"
 #include "Core/EntityComponentSystem/ECSManager.hpp"
 
-#include "Core/Window/Window.h"
+#include "Core/Window/Window.hpp"

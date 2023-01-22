@@ -1,5 +1,5 @@
 /**
- * @file Window.h
+ * @file Window.hpp
  * @brief File containing implementation of the window
  * @author Artur Sztuc <artursztuc@googlemail.com>
  * @date 2023-01-21
@@ -10,8 +10,7 @@
 
 #include <string>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "Platform/PlatformWindow.hpp"
 
 /**
  * @class Window
@@ -24,7 +23,7 @@ class Window
 private:
   /// Window to draw on
   /// @todo TODO: Abstract this to a platform layer...
-  GLFWwindow* m_window;
+  PlatformWindow* m_window;
 
   /// Window width
   unsigned int m_width;
@@ -40,7 +39,7 @@ private:
 
 private:
   /// Function callback to resize the window
-  static void frameBufferResizedCallback(GLFWwindow* _window, int _width, int _height);
+  static void frameBufferResizedCallback(PlatformWindow* _window, int _width, int _height);
 
 public:
   /**
@@ -60,12 +59,11 @@ public:
   Window(const Window&)=delete;
   Window &operator=(const Window&)=delete;
 
-  /// brief Returns the glfw window class
-  /// @todo TODO: Abstract it to the platform layer
-  GLFWwindow* GetWindow() {return m_window;};
+  /// Returns the platform-abstracted window class
+  PlatformWindow* GetWindow() {return m_window;};
 
   /// Returns if the window should close for whatever reason
-  bool ShouldClose()            {return glfwWindowShouldClose(m_window);};
+  bool ShouldClose();
 
   /// Returns if the window was resized
   bool WasWindowResized()       {return m_frameBufferResized;};

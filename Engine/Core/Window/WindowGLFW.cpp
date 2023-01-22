@@ -1,4 +1,7 @@
-#include "Window.h"
+#include "defines.h"
+
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_WINDOWS)
+#include "Core/Window/Window.hpp"
 
 Window::Window(const std::string& windowName_, uint32_t width_, uint32_t height_)
   : m_windowName(windowName_), m_width(width_), m_height(height_) 
@@ -29,3 +32,9 @@ void Window::frameBufferResizedCallback(GLFWwindow* window_,
   window->m_width  = width_;
   window->m_height = height_;
 }
+
+bool Window::ShouldClose()
+{
+  return glfwWindowShouldClose(m_window);
+}
+#endif // Platform linux or windows (does glfw work under MacOS too?)
