@@ -1,5 +1,5 @@
 /**
- * @file EventSystem.h
+ * @file EventSystem.hpp
  * @brief File holding the event system class
  * @author Artur Sztuc <artursztuc@googlemail.com>
  * @date 2023-01-21

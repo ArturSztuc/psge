@@ -28,15 +28,15 @@
 class ECSManager
 {
 private:
-  /// Vector of entities
+  /// @brief Vector of entities
   /// @todo TODO: Implement our own, faster vector?
   std::vector<Entity*> m_entities;
 
-  /// Map of component types, holding maps of components for each entity.
+  /// @brief Map of component types, holding maps of components for each entity.
   /// @todo TODO: unsigned int -> const Entity&?
   std::unordered_map<std::type_index, std::unordered_map<unsigned int, ComponentBase*>> m_components;
 
-  /// Vector of systems operating on entities
+  /// @brief Vector of systems operating on entities
   /// @todo TODO: Implement our own, faster vector?
   std::vector<SystemBase*> m_systems;
 

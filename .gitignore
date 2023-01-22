@@ -1,8 +1,11 @@
 # Files
 *.ycm_extra_conf.py
 *.swp
+Doxyfile
 
 # Folders
 *.cache/
 build/
+html/
+latex/
 

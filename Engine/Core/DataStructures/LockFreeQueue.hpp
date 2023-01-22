@@ -1,5 +1,5 @@
 /**
- * @file LockFreeQueue.h
+ * @file LockFreeQueue.hpp
  * @brief A custom Queue class that has no multithreading locks
  * @author Artur Sztuc <artursztuc@googlemail.com>
  * @date 2023-01-21

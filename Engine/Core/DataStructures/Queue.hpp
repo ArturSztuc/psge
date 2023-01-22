@@ -1,5 +1,5 @@
 /**
- * @file Queue.h
+ * @file Queue.hpp
  * @brief A thread-safe overlay over std::queue.
  * @author Artur Sztuc <artursztuc@googlemail.com>
  * @date 2023-01-21

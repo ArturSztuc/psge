@@ -69,7 +69,12 @@ private:
   static unsigned int m_nextId;
 
 public:
-  /// Default constructor. Should have a unique ID.
+  /**
+   * @brief Default constructor. Should have a unique ID.
+   *
+   * Default Entity constructor. It should contain it's own
+   * unique ID, created by iterating a static member.
+   */
   Entity();
 
   ~Entity() = default;
