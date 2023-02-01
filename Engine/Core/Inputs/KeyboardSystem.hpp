@@ -11,9 +11,11 @@
  */
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include "defines.h"
 #include "Core/Event/Event.hpp"
 #include "Core/Event/EventSystem.hpp"
+
+#include <GLFW/glfw3.h>
 
 /**
  * @enum KeyboardKeyCode
@@ -44,6 +46,7 @@ enum KeyboardKeyCode
  *
  * @todo TODO: Update params doc
  * @todo TODO: Abstract it to the platform layer...
+ * @todo TODO: Int -> U64?
  */
 void KeyCallback(GLFWwindow* _window,
                  int _key,

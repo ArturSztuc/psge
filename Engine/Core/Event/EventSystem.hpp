@@ -8,15 +8,15 @@
  */
 #pragma once 
 
-#include <algorithm>
-#include <functional>
-#include <map>
-
+#include "defines.h"
 #include "Core/Event/EventTypes.h"
 #include "Core/Event/Event.hpp"
 #include "Core/DataStructures/Queue.hpp"
 #include "Core/Logging/LogManager.hpp"
-#include "defines.h"
+
+#include <algorithm>
+#include <functional>
+#include <map>
 
 using EventFunction = std::function<void(const Event&)>;
 

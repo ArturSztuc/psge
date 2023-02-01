@@ -82,9 +82,9 @@ C* ECSManager::GetComponent(Entity* _entity)
 }
 
 template <typename C>
-std::unordered_map<unsigned int, C*> ECSManager::GetComponents()
+std::unordered_map<U32, C*> ECSManager::GetComponents()
 {
-  std::unordered_map<unsigned int, C*> derivedMap;
+  std::unordered_map<U32, C*> derivedMap;
   for(auto& [key, value] : m_components[typeid(C)]){
     derivedMap[key] = static_cast<C*>(value);
   }
@@ -93,7 +93,7 @@ std::unordered_map<unsigned int, C*> ECSManager::GetComponents()
 }
 
 template <typename C>
-bool ECSManager::HasComponent(Entity* _entity)
+B8 ECSManager::HasComponent(Entity* _entity)
 {
   static_assert(std::is_base_of<ComponentBase, C>::value, "Component must be derived from ComponentBase!");
 
@@ -131,7 +131,7 @@ void ECSManager::RemoveSystem()
   }
 }
 
-void ECSManager::Update(float _deltaTime)
+void ECSManager::Update(F32 _deltaTime)
 {
   for(auto& system : m_systems)
     system->Update(_deltaTime);

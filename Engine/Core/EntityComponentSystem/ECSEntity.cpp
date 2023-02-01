@@ -6,7 +6,7 @@ Entity::Entity()
 {
 }
 
-unsigned int Entity::GetId() const
+U32 Entity::GetId() const
 {
   return m_id;
 }
@@ -16,4 +16,4 @@ void Entity::ClearEntities()
   m_nextId = 0;
 }
 
-unsigned int Entity::m_nextId = 0;
+U32 Entity::m_nextId = 0;

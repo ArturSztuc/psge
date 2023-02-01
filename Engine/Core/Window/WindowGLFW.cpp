@@ -3,8 +3,10 @@
 #if defined(PLATFORM_LINUX) || defined(PLATFORM_WINDOWS)
 #include "Core/Window/Window.hpp"
 
-Window::Window(const std::string& windowName_, uint32_t width_, uint32_t height_)
-  : m_windowName(windowName_), m_width(width_), m_height(height_) 
+Window::Window(const std::string& _windowName,
+               U32 _width,
+               U32 _height)
+  : m_windowName(_windowName), m_width(_width), m_height(_height) 
 {
   glfwInit();
 
@@ -23,17 +25,17 @@ Window::~Window()
   glfwDestroyWindow(m_window);
 }
 
-void Window::frameBufferResizedCallback(GLFWwindow* window_,
-                                        int width_,
-                                        int height_)
+void Window::frameBufferResizedCallback(GLFWwindow* _window,
+                                        int _width,
+                                        int _height)
 {
-  auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window_));
+  auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
   window->m_frameBufferResized = true;
-  window->m_width  = width_;
-  window->m_height = height_;
+  window->m_width  = _width;
+  window->m_height = _height;
 }
 
-bool Window::ShouldClose()
+B8 Window::ShouldClose()
 {
   return glfwWindowShouldClose(m_window);
 }

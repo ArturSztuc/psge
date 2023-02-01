@@ -8,12 +8,14 @@
  */
 #pragma once
 
+#include "defines.h"
+#include "Core/EntityComponentSystem/ECSEntity.hpp"
+#include "Core/Memory/Allocator.hpp"
+
 #include <typeinfo>
 #include <vector>
 #include <typeindex>
 
-#include "Core/EntityComponentSystem/ECSEntity.hpp"
-#include "Core/Memory/Allocator.hpp"
 
 /**
  * @class ECSManager
@@ -34,7 +36,7 @@ private:
 
   /// @brief Map of component types, holding maps of components for each entity.
   /// @todo TODO: unsigned int -> const Entity&?
-  std::unordered_map<std::type_index, std::unordered_map<unsigned int, ComponentBase*>> m_components;
+  std::unordered_map<std::type_index, std::unordered_map<U32, ComponentBase*>> m_components;
 
   /// @brief Vector of systems operating on entities
   /// @todo TODO: Implement our own, faster vector?
@@ -89,7 +91,7 @@ public:
    * @todo TODO: unsigned int to const Entity& ?
    */
   template <typename C>
-  std::unordered_map<unsigned int, C*> GetComponents();
+  std::unordered_map<U32, C*> GetComponents();
 
   /**
    * @brief Checks if entity contains a component of type C
@@ -98,7 +100,7 @@ public:
    * @return boolean if entity has component of type C
    */
   template <typename C>
-  bool HasComponent(Entity* _entity);
+  B8 HasComponent(Entity* _entity);
 
   /**
    * @brief Creates and adds a system to our vector of systems
@@ -121,7 +123,7 @@ public:
    * @param _deltaTime last frame's time
    * @todo TODO: change float to time object
    */
-  void Update(float _deltaTime);
+  void Update(F32 _deltaTime);
 
 private:
   ECSManager();

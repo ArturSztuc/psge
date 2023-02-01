@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Platform/PlatformWindow.hpp"
 
@@ -32,14 +33,16 @@ private:
   unsigned int m_height;
 
   /// Was the frame recently resized?
-  bool m_frameBufferResized = false;
+  B8 m_frameBufferResized = false;
 
   /// Name of the window to print/draw on titlebar
   std::string m_windowName;
 
 private:
   /// Function callback to resize the window
-  static void frameBufferResizedCallback(PlatformWindow* _window, int _width, int _height);
+  static void frameBufferResizedCallback(PlatformWindow* _window,
+                                         int _width,
+                                         int _height);
 
 public:
   /**
@@ -49,8 +52,8 @@ public:
    * @param _height window height
    */
   Window(const std::string& _windowName,
-         uint32_t _width,
-         uint32_t _height);
+         U32 _width,
+         U32 _height);
 
   /// Default deconstructor
   ~Window();
@@ -60,13 +63,13 @@ public:
   Window &operator=(const Window&)=delete;
 
   /// Returns the platform-abstracted window class
-  PlatformWindow* GetWindow() {return m_window;};
+  PlatformWindow* GetWindow()   {return m_window;};
 
   /// Returns if the window should close for whatever reason
-  bool ShouldClose();
+  B8 ShouldClose();
 
   /// Returns if the window was resized
-  bool WasWindowResized()       {return m_frameBufferResized;};
+  B8 WasWindowResized()         {return m_frameBufferResized;};
 
   /// Resets the window resized flag 
   void ResetWindowResizedFlag() {m_frameBufferResized=false;};

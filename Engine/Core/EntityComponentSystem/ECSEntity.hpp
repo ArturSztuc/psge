@@ -10,6 +10,8 @@
  */
 #pragma once
 
+#include "defines.h"
+
 #include <unordered_map>
 #include <typeinfo>
 
@@ -44,7 +46,9 @@ public:
    * @param _deltaTime frame time for simulation
    * @todo TODO: change from float to a time object!
    */
-  virtual void Update(float _deltaTime) = 0;
+  virtual void Update(F32 _deltaTime) = 0;
+
+  virtual void Shutdown() = 0;
 };
 
 /**
@@ -58,12 +62,13 @@ public:
  *
  * @todo TODO: Test for multithreading.
  * @todo TODO: Might need atomic and locks in the constructor
+ * @todo TODO: Check if max number of entities reached
  */
 class Entity
 {
 private:
   /// Unique identifier for the entity
-  unsigned int m_id;
+  U32 m_id; // Max ~4.29B entities
 
   /// Static counter for generating unique entity IDs
   static unsigned int m_nextId;
@@ -84,7 +89,7 @@ public:
    * @return Entity's unique ID.
    * @todo TODO: Change to our own basic types
    */
-  unsigned int GetId() const;
+  U32 GetId() const;
 
   /**
    * @brief Resets the entity count to 0

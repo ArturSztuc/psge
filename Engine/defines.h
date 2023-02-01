@@ -19,6 +19,7 @@ typedef double  F64;
 
 // Bool types
 typedef char  B8;
+typedef char  C8;
 
 // String types
 typedef String<4>   S4;
@@ -64,4 +65,8 @@ typedef String<128> S128;
   #define PLATFORM_ANDROID 1
 #else
   #error "Platform unknown!"
+#endif
+
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX) || defined (PLATFORM_MAC)
+  #define WINDOW_GLFW 1
 #endif

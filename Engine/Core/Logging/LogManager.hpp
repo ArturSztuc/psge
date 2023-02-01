@@ -8,6 +8,9 @@
  */
 #pragma once
 
+#include "Core/Timing/Clock.hpp"
+#include "Core/Logging/Logger.hpp"
+
 #include <chrono>
 #include <fstream> 
 #include <iostream>
@@ -16,9 +19,6 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
-
-#include "Core/Timing/Clock.hpp"
-#include "Core/Logging/Logger.hpp"
 
 /**
  * @class LogManager
