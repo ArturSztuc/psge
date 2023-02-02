@@ -68,5 +68,5 @@ typedef String<128> S128;
 #endif
 
 #if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX) || defined (PLATFORM_MAC)
-  #define WINDOW_GLFW 1
+  #define PLATFORM_WINDOW_GLFW 1
 #endif

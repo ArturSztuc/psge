@@ -68,7 +68,7 @@ void Application::Initialize()
   UpdateClock();
 
   LDEBUG("Initializing the keyboard system");
-  KeyboardSystem::GetInstance(m_window.GetWindow());
+  KeyboardSystem::GetInstance(&m_window);
 }
 
 void Application::ShouldLoopClose()
@@ -97,7 +97,7 @@ void Application::UpdateGameState()
 void Application::UpdateInput()
 {
   // TODO: Need to change the behaviour of this singleton to have GLFW initializer and normal GetInstance.
-  KeyboardSystem::GetInstance(m_window.GetWindow()).Update();
+  KeyboardSystem::GetInstance(&m_window).Update();
 }
 
 };

@@ -1,6 +1,6 @@
 #include "defines.h"
 
-#if defined(PLATFORM_LINUX) || defined(PLATFORM_WINDOWS)
+#if defined(PLATFORM_WINDOW_GLFW)
 #include "Core/Window/Window.hpp"
 
 Window::Window(const std::string& _windowName,

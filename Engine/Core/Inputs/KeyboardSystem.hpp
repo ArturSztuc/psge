@@ -14,13 +14,11 @@
 #include "defines.h"
 #include "Core/Event/Event.hpp"
 #include "Core/Event/EventSystem.hpp"
-
-#include <GLFW/glfw3.h>
+#include "Core/Window/Window.hpp"
 
 /**
  * @enum KeyboardKeyCode
  * @brief Lists codes for different keyboard keys
- * @todo TODO: Only works under linux, so we need a platform abstraction layer for this.
  */
 enum KeyboardKeyCode
 {
@@ -31,28 +29,6 @@ enum KeyboardKeyCode
   KEY_A   = GLFW_KEY_A,
   KEY_D   = GLFW_KEY_D
 };
-
-/**
- * @brief Callback function for the glfw event poller
- *
- * Callback function that is being triggered every time glfw detects any
- * keyboard input in a window.
- *
- * @param _window GLFWwindow object to poll the events from
- * @param _key Triggered key code
- * @param _scancode No idea. @todo What is this?
- * @param _action Checks if pressed, released, held etc.
- * @param _mods No idea. @todo What is this?
- *
- * @todo TODO: Update params doc
- * @todo TODO: Abstract it to the platform layer...
- * @todo TODO: Int -> U64?
- */
-void KeyCallback(GLFWwindow* _window,
-                 int _key,
-                 int _scancode,
-                 int _action,
-                 int _mods);
 
 /**
  * @class KeyboardEvent
@@ -80,18 +56,23 @@ class KeyboardSystem
 public:
   /// Singletin onstance getter --requires GLFWwindow
   /// @todo TODO: Split into initializer(window) getter().
-  static KeyboardSystem& GetInstance(GLFWwindow* _window);
+  static KeyboardSystem& GetInstance(Window* _window);
 
   /// Polls the window keyboard events
-  /// @todo TODO: Abstract to a platform layer...
   void Update();
 
 private:
   /// Singleton constructor
-  KeyboardSystem(GLFWwindow* _window);
+  KeyboardSystem(Window* _window);
+
+  /// Platform abstrction for setting the Keyboard callback
+  void SetKeyboardCallback(Window* _window);
+
+  /// Platform abstraction for polling for the keyboard events
+  void PollKeyboardEvents();
 
 private:
   /// Pointer to the GLFW window
   /// @todo TODO: Should abstract it into a platform layer
-  GLFWwindow* m_window;
+  Window* m_window;
 };

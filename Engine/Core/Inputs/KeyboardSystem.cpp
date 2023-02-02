@@ -1,4 +1,5 @@
 #include "Core/Inputs/KeyboardSystem.hpp"
+#include "Platform/PlatformKeyboard.hpp"
 
 
 #ifndef KEYBOARDEVENTPROCESS
@@ -22,33 +23,20 @@ KeyboardKeyCode KeyboardEvent::GetCode() const
 }
 
 
-KeyboardSystem::KeyboardSystem(GLFWwindow* _window)
+KeyboardSystem::KeyboardSystem(Window* _window)
   : m_window(_window)
 {
-  glfwSetKeyCallback(m_window, &KeyCallback);
+  SetKeyboardCallback(m_window);
 };
 
 
-KeyboardSystem& KeyboardSystem::GetInstance(GLFWwindow* _window)
+KeyboardSystem& KeyboardSystem::GetInstance(Window* _window)
 {
   static KeyboardSystem instance(_window);
   return instance;
 }
 
-void KeyCallback(GLFWwindow* _window,
-                 int _key,
-                 int _scancode,
-                 int _action,
-                 int _mods)
-{
-  KeyboardEvent event(static_cast<KeyboardKeyCode>(_key));
-
-  // TODO: Only fire if the key is within KeyboardKeyCode?
-  EVENT_FIRE(event);
-}
-
 void KeyboardSystem::Update()
 {
-  // TODO: Need to abstract it to a platform layer
-  glfwPollEvents();
+  PollKeyboardEvents();
 }
