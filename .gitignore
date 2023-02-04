@@ -8,4 +8,5 @@ Doxyfile
 build/
 html/
 latex/
+.vscode/
 
