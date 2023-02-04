@@ -10,9 +10,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Will create compile_commands.json for autocompleting
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Link or link and install dependencies
-add_subdirectory(Externals)
-
 # The engine itself
 add_subdirectory(Engine)
 

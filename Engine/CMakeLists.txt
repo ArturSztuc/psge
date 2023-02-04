@@ -2,6 +2,9 @@
 set(NAME PintSizedGameEngine)
 project(${NAME} VERSION 0.0.1)
 
+# Linking the dependencies
+include(${CMAKE_SOURCE_DIR}/Externals/CMakeLists.txt)
+
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/*.hpp
                           ${PROJECT_SOURCE_DIR}/*.h
