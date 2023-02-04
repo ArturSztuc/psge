@@ -2,3 +2,6 @@
 	path = Externals/glfw
 	url = https://github.com/glfw/glfw.git
 	branch = 3.3-stable
+[submodule "Externals/json"]
+	path = Externals/json
+	url = https://github.com/nlohmann/json.git
