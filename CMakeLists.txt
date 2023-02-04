@@ -32,7 +32,7 @@ target_link_libraries(glfw Vulkan::Vulkan)
 
 find_package(nlohmann_json)
 if(nlohmann_json_FOUND)
-    message("Found gnlohmann_json")
+    message("Found nlohmann_json")
 else()
     message("Did not find nlohmann_json. We will compile it instead.")
     set(nlohmann_json_DIR ${PROJECT_SOURCE_DIR}/Externals/json)
@@ -47,4 +47,18 @@ add_subdirectory(Engine)
 add_subdirectory(Game)
 
 # Unit tests
-#add_subdirectory(UnitTests)
+find_package(GTest)
+if(GTest_FOUND)
+    message("Found GTest")
+else()
+    message("Did not find GTest. We will compile it instead.")
+    include(FetchContent)
+    FetchContent_Declare(googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG release-1.11.0
+    )
+
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif(GTest_FOUND)
+add_subdirectory(UnitTests)
