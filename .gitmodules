@@ -1,0 +1,4 @@
+[submodule "Externals/GLFW"]
+    path = Externals/GLFW
+    utl = https://github.com/glfw/glfw.git
+    branch = 3.3-stable
