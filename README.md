@@ -1,4 +1,4 @@
-# PSGE
+# PSGE : Pint-Sized Game Engine
 
 The current folder structure: 
 
@@ -17,15 +17,19 @@ psge
 │   │   ├── String
 │   │   ├── Timing
 │   │   └── Window
-│   └── Graphics
+│   ├── Graphics
+│   └── Platform
+├── Exterals
+│   ├── glfw
+│   └── json
 ├── Game
-│   ├── Assets
 │   └── Sources
 └── UnitTests
     └── Core
 ```
 
 `Engine` is compiled as a library that contains an entry point `main`.\
+`Externals` contains all the external dependencies (other than `Vulkan`).\
 `Game` is a sandbox that needs to have an object derived from the `Engine`'s
 `Application` and have a function `Application* CreateApplication()` that links
 to the entry point.\
@@ -35,6 +39,7 @@ All the objects inside of the `Engine` should to have their own unit tests
 there.
 
 ## Building
+The build should work under both Linux and Windows. It should be possible to build with VSCode, provided you have the correct CMake generators and compiler linked. For a simple build:
 ```
 cd psge
 mkdir build
@@ -44,19 +49,19 @@ make
 ```
 
 ### Dependencies
-At the moment dependencies have to be installed locally. In the future they
-will be included in some form of `Engine/External` folder, so the user will not
-have to worry about installing them themselves.\
-But for now you need:
+`Vulkan` needs to be installed to run the engine. This project searches for all the other dependencies and either links them if already installed, installs them from the `Externals` folder, or downloads and installs (e.g. `GTest`).
 
-```
-cmake >= 3.16
-glfw3 == 3.3
-nlohmann/json.hpp
-```
+The required dependencies:
+* cmake >= 3.16
+* Vulkan
 
-This will only increase as we add Vulkan, glm, shaders etc. dependencies.
+Dependencies that can be installed, but otherwise the project installs them:
+* glfw3 == 3.3
+* nlohmann/json.hpp
+* GTest
 
+
+This will only increase as we add glm, shaders.
 
 ## Running
 From now from `build` folder.
@@ -65,13 +70,13 @@ the libraries/assets/executables in the appropriate system folders.
 
 ### Unit tests
 ```
-cd UnitTests
+cd build/UnitTests
 ctest --verbose
 ```
 
 ### Sandbox
 ```
-cd Game
+cd build/Game
 ./Sandbox
 ```
 
