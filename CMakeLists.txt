@@ -14,7 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #TODO: Will need vulkan, object loaders
 find_package(glfw3 3.3)
 
-if(glfw_FOUND)
+find_package(Vulkan REQUIRED)
+if(glfw3_FOUND)
     message("Found glfw")
 else()
     message("Did not find GLFW. We will compile it instead.")
@@ -24,11 +25,10 @@ else()
     set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation" FORCE)
     set(glfw_INSTALL OFF CACHE INTERNAL "Generate installation target" FORCE)
     add_subdirectory(${glfw_DIR})
-endif(glfw_FOUND)
+    target_include_directories(glfw PUBLIC ${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(glfw Vulkan::Vulkan)
+endif(glfw3_FOUND)
 
-find_package(Vulkan REQUIRED)
-target_include_directories(glfw PUBLIC ${Vulkan_INCLUDE_DIRS})
-target_link_libraries(glfw Vulkan::Vulkan)
 
 find_package(nlohmann_json)
 if(nlohmann_json_FOUND)
@@ -47,18 +47,4 @@ add_subdirectory(Engine)
 add_subdirectory(Game)
 
 # Unit tests
-find_package(GTest)
-if(GTest_FOUND)
-    message("Found GTest")
-else()
-    message("Did not find GTest. We will compile it instead.")
-    include(FetchContent)
-    FetchContent_Declare(googletest
-        GIT_REPOSITORY https://github.com/google/googletest
-        GIT_TAG release-1.11.0
-    )
-
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-endif(GTest_FOUND)
 add_subdirectory(UnitTests)

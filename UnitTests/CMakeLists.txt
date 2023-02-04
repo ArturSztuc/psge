@@ -17,7 +17,23 @@ set(CORE_SOURCES
 
 add_executable(psge_core_tests ${CORE_SOURCES})
 
-target_link_libraries(psge_core_tests gtest_main)
+find_package(GTest)
+if(GTest_FOUND)
+    message("Found GTest")
+    target_link_libraries(psge_core_tests GTest::GTest GTest::Main)
+else()
+    message("Did not find GTest. We will compile it instead.")
+    include(FetchContent)
+    FetchContent_Declare(googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG release-1.11.0
+    )
+
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+    target_link_libraries(psge_core_tests gtest_main)
+endif(GTest_FOUND)
+
 target_link_libraries(psge_core_tests PintSizedGameEngine)
 
 # Add a custom target for running the unit tests.
