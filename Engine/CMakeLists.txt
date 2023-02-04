@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
-
 # Project names
 set(NAME PintSizedGameEngine)
 project(${NAME} VERSION 0.0.1)
