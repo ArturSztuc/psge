@@ -35,24 +35,3 @@ std::string Clock::GetElapsedString()
   std::sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
   return std::string(buffer);
 };
-
-void Clock::Sleep(U64 _time, ClockUnit _unit)
-{
-  switch (_unit)
-  {
-  case ClockUnit::CLOCK_UNIT_S:
-    std::this_thread::sleep_for(std::chrono::seconds(_time));
-    break;
-  case ClockUnit::CLOCK_UNIT_MILIS:
-    std::this_thread::sleep_for(std::chrono::milliseconds(_time));
-    break;
-  case ClockUnit::CLOCK_UNIT_MICROS:
-    std::this_thread::sleep_for(std::chrono::microseconds(_time));
-    break;
-  case ClockUnit::CLOCK_UNIT_NANOS:
-    std::this_thread::sleep_for(std::chrono::nanoseconds(_time));
-    break;
-  default:
-    break;
-  }
-}

@@ -11,7 +11,6 @@
 
 #include <chrono>
 #include <string>
-#include <thread>
 
 #include "defines.h"
 
@@ -54,27 +53,20 @@ private:
   };
 
 public:
-  /// @brief Get the clock's singleton instance
+  /// Get the clock's singleton instance
   static Clock& GetInstance();
 
-  /// @brief Resets the frame's time at the beginning of the frame
+  /// Resets the frame's time at the beginning of the frame
   void ResetFrame();
 
-  /// @brief Measures the elapsed time in milliseconds
+  /// Measures the elapsed time in milliseconds
   /// @todo TODO: Don't use F32? Time unit class?
   F32 ElapsedFrame();
 
-  /// @brief Elapsed frame time...
+  /// Elapsed frame time...
   /// @todo TODO: The same as above? Change to ElapsedGlobal?
   F32 Elapsed();
 
   /// Returns the elapsed time in a form of a string
   std::string GetElapsedString();
-
-  /// @brief Causes the current thread to sleep
-  /// @param _time The amount of time to sleep
-  /// @param _unit The time unit, @see ClockUnit
-  /// @todo TODO: Include logging...
-  /// @todo TODO: Check if <thread> or <chrono> dependency slowing us down?
-  void Sleep(U64 _time, ClockUnit _unit = CLOCK_UNIT_S);
 };

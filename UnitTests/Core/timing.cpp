@@ -10,7 +10,7 @@ TEST(TimingTests, Clock)
   // No seconds passed yet
   EXPECT_EQ(Clock::GetInstance().GetElapsedString(), "00:00:00");
 
-  Clock::GetInstance().Sleep(1, ClockUnit::CLOCK_UNIT_S);
+  sleep(1);
   
   // One second passed, expect that as a string
   EXPECT_EQ(Clock::GetInstance().GetElapsedString(), "00:00:01");
@@ -20,9 +20,9 @@ TEST(TimingTests, Clock)
   EXPECT_LT(Clock::GetInstance().Elapsed(), 0.0001);
 
   // Sleep for one second. Float should be just above 1
-  Clock::GetInstance().Sleep(1, ClockUnit::CLOCK_UNIT_S);
+  sleep(1);
   EXPECT_GT(Clock::GetInstance().Elapsed(), 1.000);
-  EXPECT_LT(Clock::GetInstance().Elapsed(), 1.01);
+  EXPECT_LT(Clock::GetInstance().Elapsed(), 1.001);
 }
 
 
