@@ -20,7 +20,7 @@ struct EngineInit
     engineInit.m_windowWidth  = _parser.Get<int>("window_width");
     engineInit.m_windowHeight = _parser.Get<int>("window_height");
     engineInit.m_fullScreen   = _parser.Get<int>("window_full_screen");
-    engineInit.m_logLocation  = _parser.Get<int>("log_location");
+    engineInit.m_logLocation  = _parser.Get<std::string>("log_location");
 
     return engineInit;
   }
