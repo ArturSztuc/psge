@@ -23,4 +23,9 @@
 #include "Core/EntityComponentSystem/ECSManager.hpp"
 #include "Core/EntityComponentSystem/ECSManager.hpp"
 
+#include "Core/PluginSystem/IPlugin.hpp"
+#include "Core/PluginSystem/PluginInterface.hpp"
+#include "Core/PluginSystem/PluginRegistry.hpp"
+#include "Core/PluginSystem/PluginManager.hpp"
+
 #include "Core/Window/Window.hpp"
