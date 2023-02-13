@@ -35,6 +35,14 @@ else()
     add_subdirectory(${nlohmann_json_DIR})
 endif(nlohmann_json_FOUND)
 
+# Find boost. Required for now
+# TODO: Include boost in Externals folder?
+find_package(Boost REQUIRED COMPONENTS filesystem)
+if(Boost_FOUND)
+    message("Found Boost")
+endif(Boost_FOUND)
+
+
 # Find nlohmann/json, download and link if not installed
 find_package(GTest)
 if(GTest_FOUND)
