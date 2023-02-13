@@ -3,6 +3,7 @@
 // Std libs
 #include <map>
 #include <vector>
+#include <iostream>
 
 // External defines
 /// @todo TODO: Do we now have boost dependency that we need to include in Externals/CMakes?
@@ -44,6 +45,27 @@
 namespace psge
 {
 
+
+  /**
+   * @struct PluginInfo
+   * @brief Holder of the plugin information, including it's full interface
+   */
+  struct PluginInfo
+  {
+    /// @brief Name of the plugin interface, e.g. RendererPluginInterface
+    S32 pluginInterfaceName;
+    /// @brief Name of the plugin, e.g. Vulkan3DRenderer
+    S32 pluginName;
+    /// @brief Location of the plugin's shared library
+    S64 pluginLocation;
+    /// @brief Interface of the plugin
+    void* pluginInterface;
+    /// @brief RegisterFunction function of the plugin
+    void* registerFunction;
+    /// @brief Create function of the plugin
+    void* createFunction;
+  };
+
   /**
    * @class PluginManager
    * @brief Manages all the plugin interfaces and their individual plugins
@@ -59,6 +81,9 @@ namespace psge
     /// @todo TODO: Make this a vector, so we can have multiple e.g. user-defined locations
     S64 m_pluginsFolder;
 
+    /// @brief Map of the available plugins
+    std::unordered_map<char*, PluginInfo> m_availablePlugins;
+
     /// @brief General plugin
     //PluginRegistry<IPlugin>                   m_ipluginInterface;
     //PluginRegistry<RendererPluginInterface>   m_rendererInterface;
@@ -68,14 +93,6 @@ namespace psge
 
   // Private member functions
   private:
-    /**
-     * @brief Finds all the plugins inside of the config-specified path
-     * @todo TODO: Maybe change bool to int that says how many plugins we found?
-     * 
-     * @return bool to see if we found any plugins. 
-     */
-    bool FindPlugins();
-
     /**
      * @brief Loads a library given a specified library path
      * 
@@ -88,6 +105,14 @@ namespace psge
   public:
     PluginManager(JsonConfigParser _config);
     ~PluginManager();
+
+    /**
+     * @brief Finds all the plugins inside of the config-specified path
+     * @todo TODO: Maybe change bool to int that says how many plugins we found?
+     * 
+     * @return bool to see if we found any plugins. 
+     */
+    bool FindPlugins();
 
     IPlugin*                  GetIPluginPlugin( S32 _pluginName);
     RendererPluginInterface*  GetRendererPlugin(S32 _pluginName);
