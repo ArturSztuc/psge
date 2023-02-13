@@ -7,11 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(GRAPHVIZ_CUSTOM_TARGETS TRUE)
+
 # Will create compile_commands.json for autocompleting
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Link or link and install dependencies
-add_subdirectory(Externals)
 
 # The engine itself
 add_subdirectory(Engine)
@@ -21,3 +20,6 @@ add_subdirectory(Game)
 
 # Unit tests
 add_subdirectory(UnitTests)
+
+include(Externals/dependency-graph.cmake)
+gen_dep_graph(png)

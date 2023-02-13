@@ -1,3 +1,6 @@
+# Linking the dependencies
+include(${CMAKE_SOURCE_DIR}/Externals/CMakeLists.txt)
+
 # Enables testing --required for GTest framework to work
 enable_testing()
 

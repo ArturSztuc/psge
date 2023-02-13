@@ -2,6 +2,9 @@
 set(NAME PintSizedGameEngine)
 project(${NAME} VERSION 0.0.1)
 
+# Linking the dependencies
+include(${CMAKE_SOURCE_DIR}/Externals/CMakeLists.txt)
+
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/*.hpp
                           ${PROJECT_SOURCE_DIR}/*.h
@@ -14,5 +17,5 @@ add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR} ${GLFW_DIR}/include
 )
 
-# Link the libraries
+# Link the librarie
 target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} nlohmann_json::nlohmann_json)
