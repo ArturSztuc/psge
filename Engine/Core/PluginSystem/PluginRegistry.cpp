@@ -24,8 +24,8 @@ bool PluginRegistry<PluginInterface>::RegisterPlugin(String32 _pluginName, Inter
   }
 
   // Register the plugin
-  GetInterfaceMap()[name] = _interface;
-  return true
+  GetInterfaceMap()[_pluginName] = _interface;
+  return true;
 }
 
 template <typename PluginInterface>

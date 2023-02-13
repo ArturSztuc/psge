@@ -5,15 +5,19 @@ namespace psge
 {
 
 Application::Application(const std::string& _configfile)
-  :m_configFile(_configfile)
+  : m_configFile(_configfile)
 {
+  /// @todo TODO: Need to rid of this dumb EngineInit, and only use our config...
   m_shouldClose = false;
   if(!_configfile.empty()){
     JsonConfigParser jsonConfig(m_configFile);
     m_engineConfig = EngineInit::Fill(jsonConfig);
   }
-  else
-    m_engineConfig = EngineInit{};
+  else{
+    JsonConfigParser jsonConfig = JsonConfigParser::LoadDefaultConfig();
+    m_engineConfig = EngineInit::Fill(jsonConfig);
+  }
+  m_pluginManager = new PluginManager(JsonConfigParser::LoadDefaultConfig());
 
   // Initialising global log
   LOG_NEW("global", LOG_LEVEL_TRACE, m_engineConfig.m_logLocation + "global_log.txt");
@@ -61,6 +65,9 @@ void Application::Run()
 
 void Application::Initialize()
 {
+  LDEBUG("Initializing the plugins");
+  LoadPlugins();
+
   LDEBUG("Running OnUserCreate");
   OnUserCreate();
 
@@ -69,6 +76,14 @@ void Application::Initialize()
 
   LDEBUG("Initializing the keyboard system");
   KeyboardSystem::GetInstance(&m_window);
+}
+
+void Application::LoadPlugins()
+{
+  if (m_pluginManager->FindPlugins())
+    LINFO("Found plugins");
+  else
+    LINFO("Did not find any plugins");
 }
 
 void Application::ShouldLoopClose()

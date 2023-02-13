@@ -106,6 +106,11 @@ protected:
   void Initialize();
 
   /**
+   * @brief Loads and selects the plugins based on our config
+   */
+  void LoadPlugins();
+
+  /**
    * @brief Checks whether the game simulation should exit
    */
   void ShouldLoopClose();
@@ -140,6 +145,8 @@ protected:
   Window      m_window{m_engineConfig.m_title,
                        static_cast<uint32_t>(m_engineConfig.m_windowWidth),
                        static_cast<uint32_t>(m_engineConfig.m_windowHeight)};
+
+  PluginManager* m_pluginManager = nullptr;
 
   /// Stores the time
   /// @todo TODO: Change to a time object

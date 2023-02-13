@@ -44,6 +44,10 @@ String<MAX_LENGTH>::String(const String& str)
   Set(str.Data());
 }
 
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>::~String()
+{
+}
 
 template <size_t MAX_LENGTH>
 void String<MAX_LENGTH>::Set(const char* str)

@@ -54,6 +54,12 @@ public:
     file >> m_config;
   };
 
+  static JsonConfigParser LoadDefaultConfig()
+  {
+    /// @todo TODO: This is very, very bad! Need to include it another way. This is todo next.
+    return JsonConfigParser("/home/artur/projects/game_engines/psge/Engine/Core/Config/DefaultConfig.json");
+  }
+
   /**
    * @brief Gets an entry from json config given they key string
    * @param _key key that corresponds to value we want to load

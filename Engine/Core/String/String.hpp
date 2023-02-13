@@ -41,6 +41,8 @@ public:
   String(const char* str);
   String(const String& str);
 
+  ~String();
+
   String& operator=(const String& other);
 
   /**

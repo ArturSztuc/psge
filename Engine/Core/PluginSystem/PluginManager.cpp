@@ -5,7 +5,8 @@ namespace psge
 
 PluginManager::PluginManager(JsonConfigParser _config)
 {
-  m_pluginsFolder = _config.Get<S64>("PluginsLocation", "Plugins/");
+  /// @todo TODO: Remove that std::string... need to be able to place char[] and char* and const char* into String<size_t> by default...
+  m_pluginsFolder = _config.Get<std::string>("plugins_location", "Plugins/").c_str();
 }
 
 PluginManager::~PluginManager()
@@ -23,6 +24,7 @@ bool PluginManager::FindPlugins()
     return false;
   }
 
+  U16 nPlugins = 0;
   // Iterate over the files inside the directory
   for(boost::filesystem::directory_iterator it(folder); it != boost::filesystem::directory_iterator(); ++it){
     // Do we have a file?
@@ -40,7 +42,17 @@ bool PluginManager::FindPlugins()
       continue;
     }
 
+    nPlugins++;
   }
+
+  LDEBUG("Loaded XXX plugins. TODO: Allow for extra args in log...");
+
+  return (nPlugins != 0) ? true : false;
+}
+
+void* PluginManager::LoadSharedLibrary(S64)
+{
+  return nullptr;
 }
 
 IPlugin* PluginManager::GetIPluginPlugin(S32 _pluginName)
