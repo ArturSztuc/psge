@@ -17,3 +17,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Link the engine library
 target_link_libraries(${PROJECT_NAME} PintSizedGameEngine glfw ${GLFW_LIBRARIES} nlohmann_json::nlohmann_json Boost::filesystem)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PintSizedGameEngine_INCLUDE_DIRS})
+
+set(ASSETS_DIR "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/assets/")
+add_compile_definitions(ASSETS_DIR="${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/assets/")
+add_definitions(-DASSETS_DIR="${ASSETS_DIR}")

@@ -18,6 +18,7 @@
 
 /// @todo TODO: Need to have this as an internal dependency in Engine/Externals folder
 #include "nlohmann/json.hpp"
+#include "defines.h"
 
 using json = nlohmann::json;
 
@@ -57,7 +58,7 @@ public:
   static JsonConfigParser LoadDefaultConfig()
   {
     /// @todo TODO: This is very, very bad! Need to include it another way. This is todo next.
-    return JsonConfigParser("/home/artur/projects/game_engines/psge/Engine/include/Core/Config/DefaultConfig.json");
+    return JsonConfigParser((std::string(ASSETS_DIR) + "DefaultConfig.json").c_str());
   }
 
   /**

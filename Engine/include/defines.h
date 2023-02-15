@@ -70,3 +70,5 @@ typedef String<128> S128;
 #if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX) || defined (PLATFORM_MAC)
   #define PLATFORM_WINDOW_GLFW 1
 #endif
+
+//#define ASSETS CMAKE_INSTALL_LIBDIR"/PintSizedGameEngine/assets"
