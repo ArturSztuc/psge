@@ -1,4 +1,4 @@
-#include "StringID.hpp"
+#include "Core/String/StringID.hpp"
 #include <unordered_map>
 
 // TODO: page 461 for much better implementation

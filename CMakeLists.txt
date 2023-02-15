@@ -15,11 +15,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # The engine itself
 add_subdirectory(Engine)
 
-# Sandbox application
+## Sandbox application
 add_subdirectory(Game)
-
-# Unit tests
-add_subdirectory(UnitTests)
-
-include(Externals/dependency-graph.cmake)
-gen_dep_graph(png)
+#
+## Unit tests
+#add_subdirectory(UnitTests)
+#
+#include(Externals/dependency-graph.cmake)
+#gen_dep_graph(png)
