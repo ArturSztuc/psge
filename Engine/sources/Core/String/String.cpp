@@ -54,7 +54,6 @@ void String<MAX_LENGTH>::Set(const char* str)
 {
   m_length = std::min(strlen(str), MAX_LENGTH /* -1 */);
   memcpy(m_data, str, m_length);
-  //m_data[m_length] = '\0';
 }
 
 template<size_t MAX_LENGTH>
@@ -64,7 +63,6 @@ bool String<MAX_LENGTH>::Equals(const char* str) const
     return false;
 
   return strncmp(m_data, str, m_length) == 0;
-  //return strcmp(m_data, str) == 0;
 }
 
 template<size_t MAX_LENGTH>
