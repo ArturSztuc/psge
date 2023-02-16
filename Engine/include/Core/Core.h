@@ -8,7 +8,6 @@
 #include "Core/Memory/Allocator.hpp"
 
 #include "Core/Config/ConfigParser.h"
-#include "Core/Config/InitDataStructs.h"
 
 #include "Core/DataStructures/Queue.hpp"
 

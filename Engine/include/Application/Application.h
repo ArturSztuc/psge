@@ -110,6 +110,11 @@ protected:
   void Configure();
 
   /**
+   * @brief Create a Window object
+   */
+  void CreateWindow();
+
+  /**
    * @brief Loads and selects the plugins based on our config
    */
   void LoadPlugins();
@@ -138,9 +143,6 @@ protected:
   /// Checks if the game simulation should close
   bool        m_shouldClose;
 
-  /// Stores the game engine configure options
-  EngineInit  m_engineConfig;
-
   /// Stores the location of the game engine initializer config
   std::string m_configFile;
 
@@ -148,9 +150,7 @@ protected:
   JsonConfigParser* m_config;
 
   /// Stores the window to render the game upon
-  Window      m_window{m_engineConfig.m_title,
-                       static_cast<uint32_t>(m_engineConfig.m_windowWidth),
-                       static_cast<uint32_t>(m_engineConfig.m_windowHeight)};
+  Window* m_window;
 
   PluginManager* m_pluginManager = nullptr;
 

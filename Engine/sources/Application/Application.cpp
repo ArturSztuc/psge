@@ -12,7 +12,7 @@ Application::Application(const std::string& _configfile)
   Configure();
 
   // Initialising global log
-  LOG_NEW("global", LOG_LEVEL_TRACE, m_engineConfig.m_logLocation + "global_log.txt");
+  LOG_NEW("global", LOG_LEVEL_TRACE, m_config->Get<std::string>("log_location") + "global_log.txt");
 
   LDEBUG("Engine config loaded");
   LINFO((std::string("Config location: ") +  m_config->GetLocation()).c_str());
@@ -26,8 +26,16 @@ void Application::Configure()
   else
     m_config = JsonConfigParser::LoadDefaultConfig();
   
-  m_engineConfig  = EngineInit::Fill(*m_config);
   m_pluginManager = new PluginManager(*m_config);
+
+  CreateWindow();
+}
+
+void Application::CreateWindow()
+{
+  m_window = new Window(m_config->Get<std::string>("game_title", "DefaultName"),
+                        m_config->Get<int>("window_height", 800),
+                        m_config->Get<int>("window_width", 600));
 }
 
 Application::~Application()
@@ -80,7 +88,7 @@ void Application::Initialize()
   UpdateClock();
 
   LDEBUG("Initializing the keyboard system");
-  KeyboardSystem::GetInstance(&m_window);
+  KeyboardSystem::GetInstance(m_window);
 }
 
 void Application::LoadPlugins()
@@ -93,7 +101,7 @@ void Application::LoadPlugins()
 
 void Application::ShouldLoopClose()
 {
-  if(m_window.ShouldClose())
+  if(m_window->ShouldClose())
     m_shouldClose = true;
 }
 
@@ -117,7 +125,7 @@ void Application::UpdateGameState()
 void Application::UpdateInput()
 {
   // TODO: Need to change the behaviour of this singleton to have GLFW initializer and normal GetInstance.
-  KeyboardSystem::GetInstance(&m_window).Update();
+  KeyboardSystem::GetInstance(m_window).Update();
 }
 
 };
