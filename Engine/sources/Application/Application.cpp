@@ -20,7 +20,6 @@ Application::Application(const std::string& _configfile)
 
 void Application::Configure()
 {
-  /// @todo TODO: Need to rid of this dumb EngineInit, and only use our config...
   if(!m_configFile.empty())
     m_config = new JsonConfigParser(m_configFile);
   else
