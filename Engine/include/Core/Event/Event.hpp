@@ -35,7 +35,6 @@ struct EventVar
 
   // Variable value union
   // TODO: Do we need to pad Bool to be 32bit?
-  // TODO: What if we want 64bit?
   // TODO: Add string somehow?
   union
   {

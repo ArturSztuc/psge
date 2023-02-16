@@ -33,8 +33,8 @@ void Application::Configure()
 void Application::CreateWindow()
 {
   m_window = new Window(m_config->Get<std::string>("game_title", "DefaultName"),
-                        m_config->Get<int>("window_height", 800),
-                        m_config->Get<int>("window_width", 600));
+                        m_config->Get<int>("window_width", 800),
+                        m_config->Get<int>("window_height", 600));
 }
 
 Application::~Application()
@@ -124,7 +124,7 @@ void Application::UpdateGameState()
 void Application::UpdateInput()
 {
   // TODO: Need to change the behaviour of this singleton to have GLFW initializer and normal GetInstance.
-  KeyboardSystem::GetInstance(m_window).Update();
+  KeyboardSystem::GetInstance(m_window).Update(m_deltaTime);
 }
 
 };

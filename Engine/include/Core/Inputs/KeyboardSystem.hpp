@@ -15,6 +15,7 @@
 #include "Core/Event/Event.hpp"
 #include "Core/Event/EventSystem.hpp"
 #include "Core/Window/Window.hpp"
+#include "Core/EntityComponentSystem/System.hpp"
 
 /**
  * @enum KeyboardKeyCode
@@ -44,14 +45,13 @@ public:
   KeyboardKeyCode GetCode() const;
 };
 
-// TODO: Let's derive it from SystemBase object...
 /**
  * @class KeyboardSystem
  * @brief Polls and dispatches key events
  *
  * @todo TODO: Re-check if needed.
  */
-class KeyboardSystem
+class KeyboardSystem : public SystemBase
 {
 public:
   /// Singletin onstance getter --requires GLFWwindow
@@ -59,7 +59,10 @@ public:
   static KeyboardSystem& GetInstance(Window* _window);
 
   /// Polls the window keyboard events
-  void Update();
+  void Update(F32 _deltaTime);
+
+  /// Shuts the KeyboardSystem down
+  void Shutdown();
 
 private:
   /// Singleton constructor
@@ -73,6 +76,5 @@ private:
 
 private:
   /// Pointer to the GLFW window
-  /// @todo TODO: Should abstract it into a platform layer
   Window* m_window;
 };

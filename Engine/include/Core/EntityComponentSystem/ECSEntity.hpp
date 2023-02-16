@@ -11,6 +11,7 @@
 #pragma once
 
 #include "defines.h"
+#include "Core/EntityComponentSystem/System.hpp"
 
 #include <unordered_map>
 #include <typeinfo>
@@ -27,28 +28,6 @@ class ComponentBase
 {
 public:
   virtual ~ComponentBase() = default;
-};
-
-/**
- * @class SystemBase
- * @brief A base system class, for all the systems operating on components
- *
- * @todo TODO: We need to start implementing it in all the systems that might operate on components. We probably don't have any yet?
- * @todo TODO: Need to converge on naming. We have Systems, Managers etc. System for components, managers for other singletons? All systems?
- */
-class SystemBase
-{
-public:
-  virtual ~SystemBase() = default;
-
-  /**
-   * @brief Overloadable update function for each system
-   * @param _deltaTime frame time for simulation
-   * @todo TODO: change from float to a time object!
-   */
-  virtual void Update(F32 _deltaTime) = 0;
-
-  virtual void Shutdown() = 0;
 };
 
 /**

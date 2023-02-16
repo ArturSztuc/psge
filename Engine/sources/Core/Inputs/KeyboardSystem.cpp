@@ -24,7 +24,7 @@ KeyboardKeyCode KeyboardEvent::GetCode() const
 
 
 KeyboardSystem::KeyboardSystem(Window* _window)
-  : m_window(_window)
+  : SystemBase(SYSTEM_TYPE_INPUT), m_window(_window)
 {
   SetKeyboardCallback(m_window);
 };
@@ -36,7 +36,12 @@ KeyboardSystem& KeyboardSystem::GetInstance(Window* _window)
   return instance;
 }
 
-void KeyboardSystem::Update()
+void KeyboardSystem::Update(F32 _deltaTime)
 {
   PollKeyboardEvents();
+}
+
+void KeyboardSystem::Shutdown()
+{
+
 }
