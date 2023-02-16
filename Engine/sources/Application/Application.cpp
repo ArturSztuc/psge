@@ -1,29 +1,34 @@
 #include "Application/Application.h"
 
-
 namespace psge
 {
 
 Application::Application(const std::string& _configfile)
   : m_configFile(_configfile)
 {
-  /// @todo TODO: Need to rid of this dumb EngineInit, and only use our config...
   m_shouldClose = false;
-  if(!_configfile.empty()){
-    JsonConfigParser jsonConfig(m_configFile);
-    m_engineConfig = EngineInit::Fill(jsonConfig);
-  }
-  else{
-    JsonConfigParser jsonConfig = JsonConfigParser::LoadDefaultConfig();
-    m_engineConfig = EngineInit::Fill(jsonConfig);
-  }
-  m_pluginManager = new PluginManager(JsonConfigParser::LoadDefaultConfig());
+
+  // Loads the configuration file
+  Configure();
 
   // Initialising global log
   LOG_NEW("global", LOG_LEVEL_TRACE, m_engineConfig.m_logLocation + "global_log.txt");
 
-  LINFO("Initializing the application");
-};
+  LDEBUG("Engine config loaded");
+  LINFO((std::string("Config location: ") +  m_config->GetLocation()).c_str());
+}
+
+void Application::Configure()
+{
+  /// @todo TODO: Need to rid of this dumb EngineInit, and only use our config...
+  if(!m_configFile.empty())
+    m_config = new JsonConfigParser(m_configFile);
+  else
+    m_config = JsonConfigParser::LoadDefaultConfig();
+  
+  m_engineConfig  = EngineInit::Fill(*m_config);
+  m_pluginManager = new PluginManager(*m_config);
+}
 
 Application::~Application()
 {

@@ -43,7 +43,6 @@ public:
    */
   Application(const std::string& configfile_);
 
-
   /**
    * @brief Default deconstructor
    */
@@ -106,6 +105,11 @@ protected:
   void Initialize();
 
   /**
+   * @brief Configures the engine given the JsonConfigParser object
+   */
+  void Configure();
+
+  /**
    * @brief Loads and selects the plugins based on our config
    */
   void LoadPlugins();
@@ -140,6 +144,8 @@ protected:
   /// Stores the location of the game engine initializer config
   std::string m_configFile;
 
+  /// Stores the config object
+  JsonConfigParser* m_config;
 
   /// Stores the window to render the game upon
   Window      m_window{m_engineConfig.m_title,

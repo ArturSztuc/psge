@@ -37,6 +37,7 @@ public:
    */
   JsonConfigParser(const std::string& _filename)
   {
+    m_location = _filename;
     Load(_filename);
   }
 
@@ -55,10 +56,10 @@ public:
     file >> m_config;
   };
 
-  static JsonConfigParser LoadDefaultConfig()
+  static JsonConfigParser* LoadDefaultConfig()
   {
     /// @todo TODO: This is very, very bad! Need to include it another way. This is todo next.
-    return JsonConfigParser((std::string(ASSETS_DIR) + "DefaultConfig.json").c_str());
+    return new JsonConfigParser((std::string(ASSETS_DIR) + "DefaultConfig.json").c_str());
   }
 
   /**
@@ -78,7 +79,11 @@ public:
     return it.value().get<T>();
   };
 
+  std::string GetLocation() { return m_location; };
+
+
 private:
   /// Internal Json config holder
   json m_config;
+  std::string m_location;
 };
