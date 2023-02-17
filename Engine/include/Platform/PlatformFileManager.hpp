@@ -1,66 +1,28 @@
 /**
  * @file PlatformFileManager.hpp
- * @author your name (you@domain.com)
- * @brief 
+ * @author Artur Sztuc <artursztuc@googlemail.com>
+ * @brief Macros to make the library loading and unloadong platform-agnostic
  * @date 2023-02-17
  */
 #pragma once
 
-// std includes
-#include <iostream>
-
-// Load platform-specific library-loading lib
 #ifdef PLATFORM_WINDOWS
-#include <windows.h>
+  #include <windows.h>
+  #define HANDLE HMODULE
+  #define CLOSE_LIB FreeLibrary 
+  #define GET_LIB_FUNCTION GetProcAddress
+  #define GET_LIB(_file) LoadLibrary(_file)
+  #define GET_LIB_ERROR GetLastError()
 #elif defined(PLATFORM_LINUX)
-#include <dlfcn.h>
+  #include <dlfcn.h>
+  #define HANDLE void*
+  #define CLOSE_LIB dlclose
+  #define GET_LIB_FUNCTION dlsym
+  #define GET_LIB(_file) dlopen(_file, RTLD_LAZY)
+  #define GET_LIB_ERROR dlerror()
+#else
+  #define HANDLE
+  #define CLOSE_LIB
+  #define GET_LIB_FUNCTION
+  #define GET_LIB(_file)
 #endif
-
-// internal includes
-#include "defines.h"
-#include "Core/PluginSystem/PluginManager.hpp"
-#include "Core/Logging/LogManager.hpp"
-
-namespace psge
-{
-
-void* PluginManager::LoadSharedLibrary(S64 _file)
-{
-#ifdef PLATFORM_WINDOWS
-  HMODULE handle = LoadLibrary(_file.Data());
-  if(!handle){
-    LERROR("Failed to load a shared library!");
-    LERROR(GetLastError());
-    return nullptr;
-  }
-#elif defined(PLATFORM_LINUX)
-  void* handle = dlopen(_file.Data(), RTLD_LAZY);
-  if(!handle){
-    LERROR("Failed to load a shared library!");
-    LERROR(dlerror());
-    return nullptr;
-  }
-#endif
-  return handle;
-}
-
-void* PluginManager::GetFunctionAddress(void* _handle, const S64& _functionName)
-{
-  void* address = nullptr;
-#ifdef PLATFORM_WINDOWS
-  address = (void*)GetProcAddress((HMODULE)_handle, _functionName.Data());
-  if(!address){
-    LERROR("Failed to load exported function from a shared library!");
-    LERROR(GetLastError());
-  }
-#elif defined(PLATFORM_LINUX)
-  address = dlsym(_handle, _functionName.Data());
-  if(!address){
-    LERROR("Failed to load exported function from a shared library!");
-    LERROR(dlerror());
-  }
-#endif
-  return address;
-}
-
-};

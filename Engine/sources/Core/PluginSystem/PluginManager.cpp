@@ -105,6 +105,28 @@ void PluginManager::RegisterPluginInterface(S32 _pluginInterfaceName)
 {
 }
 
+void* PluginManager::LoadSharedLibrary(S64 _file)
+{
+  HANDLE handle = GET_LIB(_file.Data());
+  if(!handle){
+    LERROR("Failed to load a shared library!");
+    LERROR(GET_LIB_ERROR);
+    return nullptr;
+  }
+  return handle;
+}
+
+void* PluginManager::GetFunctionAddress(void* _handle, const S64& _functionName)
+{
+  HANDLE address = nullptr;
+  address = GET_LIB_FUNCTION(_handle, _functionName.Data());
+  if(!address){
+    LERROR("Failed to load exported function from a shared library!");
+    LERROR(GET_LIB_ERROR);
+  }
+  return address;
+}
+
 template <class PluginInterface>
 void PluginManager::RegisterPlugin(PluginInterface* _plugin)
 {
