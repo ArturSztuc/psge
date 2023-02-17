@@ -1,4 +1,5 @@
 #include "Core/PluginSystem/PluginManager.hpp"
+#include "Platform/PlatformFileManager.hpp"
 
 namespace psge
 {
@@ -38,10 +39,25 @@ bool PluginManager::FindPlugins()
     // Does the library export RegisterPlugin function?
     void* handle = LoadSharedLibrary(it->path().string().c_str());
     if(!handle){
-      LWARN("Warning, we found a library but it doesn't export RegisterPlugin function");
+      LWARN("Warning, we found a library it cannot be loaded");
       continue;
     }
 
+    // Get the library's external function that registers the plugin
+    RegisterPluginFunction registerFunction = (RegisterPluginFunction)GetFunctionAddress(handle, "RegisterPlugin");
+
+    // Assert if we loaded the external RegisterPlugin function
+    if(!registerFunction){
+      LWARN("Warning, we found a library but we cannot find the exported \"RegisterPlugin\" function!");
+      UnloadSharedLibrary(handle);
+    }
+
+    // Call the "RegisterPlugin" function to register the plugin with this PluginManager
+    registerFunction(this);
+
+    /// @todo TODO: Add an extra assert to see if the registration was successfull?
+
+    // We added a plugin :)
     nPlugins++;
   }
 
@@ -50,9 +66,8 @@ bool PluginManager::FindPlugins()
   return (nPlugins != 0) ? true : false;
 }
 
-void* PluginManager::LoadSharedLibrary(S64)
+void PluginManager::UnloadSharedLibrary(void* _handle)
 {
-  return nullptr;
 }
 
 IPlugin* PluginManager::GetIPluginPlugin(S32 _pluginName)

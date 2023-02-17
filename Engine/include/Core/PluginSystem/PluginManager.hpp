@@ -44,7 +44,7 @@
 
 namespace psge
 {
-
+  typedef void (*RegisterPluginFunction)(PluginManager*);
 
   /**
    * @struct PluginInfo
@@ -59,11 +59,7 @@ namespace psge
     /// @brief Location of the plugin's shared library
     S64 pluginLocation;
     /// @brief Interface of the plugin
-    void* pluginInterface;
-    /// @brief RegisterFunction function of the plugin
-    void* registerFunction;
-    /// @brief Create function of the plugin
-    void* createFunction;
+    RegisterPluginFunction registerFunction;
   };
 
   /**
@@ -100,6 +96,17 @@ namespace psge
      * @return void* RegisterPlugin function!
      */
     void* LoadSharedLibrary(S64 _libraryPath);
+
+    void UnloadSharedLibrary(void* _handle);
+
+    /**
+     * @brief Get the address of an exported function by name fron a library 
+     * 
+     * @param _handle handle to the library to load
+     * @param _functionName name of the exported function to load
+     * @return void* address of the library's exported function
+     */
+    void* GetFunctionAddress(void* _handle, const S64& _functionName);
 
   // Public member functions
   public:
