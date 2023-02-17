@@ -96,6 +96,8 @@ void Application::LoadPlugins()
     LINFO("Found plugins");
   else
     LINFO("Did not find any plugins");
+
+  //std::unique_ptr<void*> examplePlugn = m_pluginManager->GetPlugin("RendererPluginInterface");
 }
 
 void Application::ShouldLoopClose()

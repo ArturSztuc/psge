@@ -44,6 +44,16 @@
 
 namespace psge
 {
+
+  /**
+   * @class PluginManager
+   * @brief Manages all the plugin interfaces and their individual plugins
+   * 
+   * @todo TODO: This doesn't sit with me well. It needs to be more generalized...
+   * @todo TODO: Perhaps: each plugin interface is a string, e.g. "RendererPluginInterface" and we only have one GetPlugin(S32 _pluginInterfaceName)
+   */
+  class PluginManager
+  {
   typedef void (*RegisterPluginFunction)(PluginManager*);
 
   /**
@@ -56,21 +66,9 @@ namespace psge
     S32 pluginInterfaceName;
     /// @brief Name of the plugin, e.g. Vulkan3DRenderer
     S32 pluginName;
-    /// @brief Location of the plugin's shared library
-    S64 pluginLocation;
     /// @brief Interface of the plugin
-    RegisterPluginFunction registerFunction;
+    RegisterPluginFunction plugin;
   };
-
-  /**
-   * @class PluginManager
-   * @brief Manages all the plugin interfaces and their individual plugins
-   * 
-   * @todo TODO: This doesn't sit with me well. It needs to be more generalized...
-   * @todo TODO: Perhaps: each plugin interface is a string, e.g. "RendererPluginInterface" and we only have one GetPlugin(S32 _pluginInterfaceName)
-   */
-  class PluginManager
-  {
   // Private data members
   private:
     /// @brief Location of the plugins
@@ -132,6 +130,6 @@ namespace psge
     void RegisterPluginInterface(S32 _pluginInterfaceName);
 
     template <class PluginInterface>
-    void RegisterPlugin(S32 _pluginInterfaceName, S32 _pluginName);
+    void RegisterPlugin(PluginInterface* _plugin);
   };
 };

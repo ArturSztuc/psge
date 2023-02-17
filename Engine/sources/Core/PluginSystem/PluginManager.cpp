@@ -88,17 +88,35 @@ ExamplePluginInterface* PluginManager::GetExamplePlugin( S32 _pluginName)
 template <class PluginInterface>
 PluginInterface* PluginManager::GetPlugin(S32 _pluginInterfaceName)
 {
-  return nullptr;
+  //for(const auto& pair : m_availablePlugins){
+  //  if(_pluginInterfaceName.Equals(pair.second.pluginInterfaceName)){
+  //    LINFO("Getting a plugin!");
+  //    return pair.second.plugin;
+  //  }
+  //}
+
+  //LINFO("Couldn't find a plugin with the requested plugin interface");
+  //return nullptr;
 }
 
+/// @todo TODO: It's dumb that we have PluginInterface and _pluginInterfaceName, sort this out...
 template <class PluginInterface>
 void PluginManager::RegisterPluginInterface(S32 _pluginInterfaceName)
 {
 }
 
 template <class PluginInterface>
-void PluginManager::RegisterPlugin(S32 _pluginInterfaceName, S32 _pluginName)
+void PluginManager::RegisterPlugin(PluginInterface* _plugin)
 {
+  char* pluginName          = _plugin->GetUniquePluginName();
+  char* pluginInterfaceName = _plugin->GetUniquePluginName();
+
+  PluginInfo info;
+  info.pluginName = pluginName;
+  info.pluginInterfaceName = pluginInterfaceName;
+  info.plugin = (RegisterPluginFunction)_plugin;
+
+  m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
 }
 
 };
