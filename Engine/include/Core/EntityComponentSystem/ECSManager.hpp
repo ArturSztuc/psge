@@ -1,6 +1,6 @@
 /**
  * @file ECSManager.hpp
- * @brief Contains the Entity Component System.
+ * @brief Contains the implementation of Entity Component System.
  * @author Artur Sztuc <artursztuc@googlemail.com>
  * @date 2023-01-21
  *
@@ -16,14 +16,12 @@
 #include <vector>
 #include <typeindex>
 
-
 /**
  * @class ECSManager
- * @brief Templated Entity Component System
+ * @brief Manager of Entities and templated Components and Systems
  *
  * Templated Entity Component System manager singleton. Holds entities,
- * components for these entities, and systems that operate on these
- * components.
+ * components for these entities, and systems that operate on the components.
  *
  * @todo TODO: How can we implement multiple components of the same typename for one entity?
  */
@@ -57,10 +55,10 @@ public:
    *
    * Creates a new component and assigns it to already-existing Entity
    * object. It uses our own custom memory allocator.
-   *
    * @todo TODO: Test for speed with different memory allocators
    *
-   * @tparam C Component's typename <>
+   * @tparam C Component's typename 
+   * @tparam Args Components' constructor arguments
    * @param _entity Entity to assign the component to
    * @param _args Arguments to be passed to the component template
    */
@@ -130,5 +128,10 @@ private:
   ~ECSManager();
 };
 
+/**
+ * @brief Macro that returns the Entity Component Systems' singleton instance
+ *
+ * @see ECSManager
+ */
 #define ECS() \
   ECSManager::GetInstance()

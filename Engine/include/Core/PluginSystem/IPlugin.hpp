@@ -7,18 +7,17 @@
 
 class IPlugin
 {
-private:
-  S32 m_pluginName;
-
 public:
-  IPlugin(S32 _pluginName)
-    : m_pluginName(_pluginName)
-  {
-  };
+  IPlugin()
+  {};
 
   ~IPlugin()
-  {
-  };
+  {};
+
+  virtual const char* GetPluginName()           const = 0;
+  virtual const char* GetPluginInterfaceName()  const = 0;
+  virtual const char* GetPluginCapabilities()   const = 0;
+  virtuan const char* GetPluginDelete()         const = 0;
 };
 
 //};

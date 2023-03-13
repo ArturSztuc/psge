@@ -43,7 +43,7 @@ Application::~Application()
   LOGS_SAVE();
 };
 
-void Application::Run()
+void Application::Run(bool _shouldRun)
 {
   LINFO("Running the application");
 

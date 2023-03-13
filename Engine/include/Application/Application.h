@@ -58,7 +58,7 @@ public:
    * the game mechanics (and runs e.g. OnUserUpdate and Update
    * functions) at every time step.
    */
-  virtual void Run();
+  virtual void Run(bool _shouldRun = true);
 
   /** 
    * @brief To be ran in the initialiser. To-overwrite.

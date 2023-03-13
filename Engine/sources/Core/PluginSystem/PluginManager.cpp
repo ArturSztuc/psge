@@ -1,5 +1,4 @@
 #include "Core/PluginSystem/PluginManager.hpp"
-#include "Platform/PlatformFileManager.hpp"
 
 namespace psge
 {
@@ -37,7 +36,7 @@ bool PluginManager::FindPlugins()
       continue;
 
     // Does the library export RegisterPlugin function?
-    void* handle = LoadSharedLibrary(it->path().string().c_str());
+    HANDLE handle = LoadSharedLibrary(it->path().string().c_str());
     if(!handle){
       LWARN("Warning, we found a library it cannot be loaded");
       continue;
@@ -66,44 +65,29 @@ bool PluginManager::FindPlugins()
   return (nPlugins != 0) ? true : false;
 }
 
-void PluginManager::UnloadSharedLibrary(void* _handle)
+void PluginManager::UnloadSharedLibrary(HANDLE _handle)
 {
+  CLOSE_LIB(_handle);
 }
 
-IPlugin* PluginManager::GetIPluginPlugin(S32 _pluginName)
+std::unique_ptr<IPlugin> PluginManager::GetPlugin(S32 _pluginInterfaceName)
 {
+
+  for(auto& pair : m_availablePlugins){
+    if(_pluginInterfaceName.Equals(pair.second.pluginInterfaceName)){
+      LINFO("Getting a plugin!");
+      return pair.second.createFunction();
+    }
+  }
+  LINFO("Couldn't find a plugin with the requested plugin interface");
   return nullptr;
 }
 
-RendererPluginInterface* PluginManager::GetRendererPlugin(S32 _pluginName)
-{
-  return nullptr;
-}
-
-ExamplePluginInterface* PluginManager::GetExamplePlugin( S32 _pluginName)
-{
-  return nullptr;
-}
-
-template <class PluginInterface>
-PluginInterface* PluginManager::GetPlugin(S32 _pluginInterfaceName)
-{
-  //for(const auto& pair : m_availablePlugins){
-  //  if(_pluginInterfaceName.Equals(pair.second.pluginInterfaceName)){
-  //    LINFO("Getting a plugin!");
-  //    return pair.second.plugin;
-  //  }
-  //}
-
-  //LINFO("Couldn't find a plugin with the requested plugin interface");
-  //return nullptr;
-}
-
-/// @todo TODO: It's dumb that we have PluginInterface and _pluginInterfaceName, sort this out...
-template <class PluginInterface>
-void PluginManager::RegisterPluginInterface(S32 _pluginInterfaceName)
-{
-}
+///// @todo TODO: It's dumb that we have PluginInterface and _pluginInterfaceName, sort this out...
+//template <class PluginInterface>
+//void PluginManager::RegisterPluginInterface(S32 _pluginInterfaceName)
+//{
+//}
 
 void* PluginManager::LoadSharedLibrary(S64 _file)
 {
@@ -116,7 +100,7 @@ void* PluginManager::LoadSharedLibrary(S64 _file)
   return handle;
 }
 
-void* PluginManager::GetFunctionAddress(void* _handle, const S64& _functionName)
+void* PluginManager::GetFunctionAddress(HANDLE _handle, const S64& _functionName)
 {
   HANDLE address = nullptr;
   address = GET_LIB_FUNCTION(_handle, _functionName.Data());
@@ -127,18 +111,32 @@ void* PluginManager::GetFunctionAddress(void* _handle, const S64& _functionName)
   return address;
 }
 
-template <class PluginInterface>
-void PluginManager::RegisterPlugin(PluginInterface* _plugin)
+bool PluginManager::RegisterPlugin(HANDLE _plugin)
 {
-  char* pluginName          = _plugin->GetUniquePluginName();
-  char* pluginInterfaceName = _plugin->GetUniquePluginName();
+  //char* pluginName          = _plugin->GetUniquePluginName();
+  //char* pluginInterfaceName = _plugin->GetUniquePluginName();
 
-  PluginInfo info;
-  info.pluginName = pluginName;
-  info.pluginInterfaceName = pluginInterfaceName;
-  info.plugin = (RegisterPluginFunction)_plugin;
+  //PluginInfo info;
+  //info.pluginName = pluginName;
+  //info.pluginInterfaceName = pluginInterfaceName;
+  //info.plugin = (RegisterPluginFunction)_plugin;
 
-  m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
+  //m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
+  return true;
 }
+
+//template <class PluginInterface>
+//void PluginManager::RegisterPlugin(PluginInterface* _plugin)
+//{
+//  char* pluginName          = _plugin->GetUniquePluginName();
+//  char* pluginInterfaceName = _plugin->GetUniquePluginName();
+//
+//  PluginInfo info;
+//  info.pluginName = pluginName;
+//  info.pluginInterfaceName = pluginInterfaceName;
+//  info.plugin = (RegisterPluginFunction)_plugin;
+//
+//  m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
+//}
 
 };

@@ -22,6 +22,16 @@ class PluginInterface
   virtual std::unique_ptr<Interface> Create() = 0;
 
   /**
+   * @brief Destroy function for this plugin
+   * 
+   * It needs to be done this way rather than through `delete plugin` to ensure
+   * that the code that destroys the plugin is compiled with the same compiler
+   * as the plugin itself. That way we can make sure that e.g. plugin can be
+   * compiled on one machine, and sent to a game engine on another machine.
+   */
+  virtual void Destroy() = 0;
+
+  /**
    * @brief Get the plugin's unique name
    * 
    * @return String32 Plugin's unique name

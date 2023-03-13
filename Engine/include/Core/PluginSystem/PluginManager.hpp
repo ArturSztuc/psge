@@ -18,6 +18,7 @@
 
 // Pint Sized Game Engine plugin interfaces
 #include "Graphics/RendererPluginInterface.hpp"
+#include "Platform/PlatformFileManager.hpp"
 
 /// @todo TODO: This is perhaps not needed? Each Interface could define it's own PluginRegistry. On the other nice, it would be nice to have them all in one place...
 
@@ -62,12 +63,16 @@ namespace psge
    */
   struct PluginInfo
   {
-    /// @brief Name of the plugin interface, e.g. RendererPluginInterface
-    S32 pluginInterfaceName;
     /// @brief Name of the plugin, e.g. Vulkan3DRenderer
     S32 pluginName;
-    /// @brief Interface of the plugin
-    RegisterPluginFunction plugin;
+    /// @brief Name of the plugin interface, e.g. RendererPluginInterface
+    S32 pluginInterfaceName;
+    /// @brief Handle to the plugin
+    HANDLE plugin;
+    /// @brief Handle to the Plugin's Create function
+    std::function<std::unique_ptr<IPlugin>()> createFunction;
+    /// @brief Handle to the Plugin's Destroy function
+    std::function<std::unique_ptr<IPlugin>()> destroyFunction;
   };
   // Private data members
   private:
@@ -77,13 +82,6 @@ namespace psge
 
     /// @brief Map of the available plugins
     std::unordered_map<char*, PluginInfo> m_availablePlugins;
-
-    /// @brief General plugin
-    //PluginRegistry<IPlugin>                   m_ipluginInterface;
-    //PluginRegistry<RendererPluginInterface>   m_rendererInterface;
-    //PluginRegistry<ExamplePluginInterface>    m_exampleInterface;
-
-    //std::unordered_map<S32, std::vector<S32>> m_pluginMap;
 
   // Private member functions
   private:
@@ -95,7 +93,7 @@ namespace psge
      */
     void* LoadSharedLibrary(S64 _libraryPath);
 
-    void UnloadSharedLibrary(void* _handle);
+    void UnloadSharedLibrary(HANDLE _handle);
 
     /**
      * @brief Get the address of an exported function by name fron a library 
@@ -104,7 +102,7 @@ namespace psge
      * @param _functionName name of the exported function to load
      * @return void* address of the library's exported function
      */
-    void* GetFunctionAddress(void* _handle, const S64& _functionName);
+    void* GetFunctionAddress(HANDLE _handle, const S64& _functionName);
 
   // Public member functions
   public:
@@ -119,17 +117,8 @@ namespace psge
      */
     bool FindPlugins();
 
-    IPlugin*                  GetIPluginPlugin( S32 _pluginName);
-    RendererPluginInterface*  GetRendererPlugin(S32 _pluginName);
-    ExamplePluginInterface*   GetExamplePlugin( S32 _pluginName);
+    std::unique_ptr<IPlugin> GetPlugin(S32 _pluginInterfaceName);
 
-    template <class PluginInterface>
-    PluginInterface* GetPlugin(S32 _pluginInterfaceName);
-
-    template <class PluginInterface>
-    void RegisterPluginInterface(S32 _pluginInterfaceName);
-
-    template <class PluginInterface>
-    void RegisterPlugin(PluginInterface* _plugin);
+    bool RegisterPlugin(HANDLE _plugin);
   };
 };
