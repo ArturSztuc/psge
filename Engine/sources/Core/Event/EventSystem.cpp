@@ -1,16 +1,20 @@
 #include "Core/Event/EventSystem.hpp"
 
+EventSystem::EventSystem()
+{
+}
+
 EventSystem& EventSystem::GetInstance()
 {
     static EventSystem instance;
     return instance;
 };
 
-  void EventSystem::Subscribe(const EventType& _type,
-                              EventFunction&& _handler)
-  {
-    m_handlers[_type].push_back(_handler);
-  };
+void EventSystem::Subscribe(const EventType& _type,
+                            EventFunction&& _handler)
+{
+  m_handlers[_type].push_back(_handler);
+}
 
 void EventSystem::SendEvent(const Event& _event)
 {

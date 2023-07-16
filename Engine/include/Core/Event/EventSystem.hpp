@@ -55,6 +55,12 @@ public:
   void Update();
 
 private:
+  /**
+   * @brief Default constructor, private to make it a singleton
+   *
+   * For now it is empty, and it might stay that way.
+   */
+  EventSystem();
   /// Map of event types and vectors of subscribed handlers for each event type
   std::map<EventType, std::vector<EventFunction>> m_handlers;
 

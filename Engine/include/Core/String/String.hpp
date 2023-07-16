@@ -109,9 +109,9 @@ public:
   bool EndsWith   (const String& _substring) const;
 };
 
-typedef  String<4> String4;
-typedef  String<8> String8;
-typedef  String<16> String16;
-typedef  String<32> String32;
-typedef  String<64> String64;
-typedef  String<128> String128;
+typedef String<4> String4;
+typedef String<8> String8;
+typedef String<16> String16;
+typedef String<32> String32;
+typedef String<64> String64;
+typedef String<128> String128;
