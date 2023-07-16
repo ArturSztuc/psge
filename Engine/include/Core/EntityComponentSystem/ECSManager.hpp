@@ -44,6 +44,9 @@ public:
   /// Singleton getter
   static ECSManager& GetInstance();
 
+  /// Removes the copy/move operations
+  NOCOPY(ECSManager);
+
   /// Creates a new entity
   Entity* CreateEntity();
 

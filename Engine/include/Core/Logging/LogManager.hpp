@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include "defines.h"
 #include "Core/Timing/Clock.hpp"
 #include "Core/Logging/Logger.hpp"
 
@@ -29,6 +30,9 @@ class LogManager
 public:
   /// Singleton instance getter
   static LogManager& GetInstance();
+
+  /// Makes log manager non-copyable
+  NOCOPY(LogManager);
 
   /**
    * @brief Sets level of a given logger

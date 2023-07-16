@@ -58,6 +58,9 @@ public:
   /// @todo TODO: Split into initializer(window) getter().
   static KeyboardSystem& GetInstance(Window* _window);
 
+  /// Makes the KeyboardSystem non-copyable and non-movable
+  NOCOPY(KeyboardSystem);
+
   /// Polls the window keyboard events
   void Update(F32 _deltaTime);
 

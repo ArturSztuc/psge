@@ -30,6 +30,9 @@ public:
   /// Singleton instance getter
   static EventSystem& GetInstance();
 
+  /// Makes the calss non-copyable and non-movable
+  NOCOPY(EventSystem);
+
   /**
    * @brief Subscribes functions and objects to event type
    * @param _type type of the event @see EventType

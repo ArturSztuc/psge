@@ -72,3 +72,14 @@ typedef String<128> S128;
 #endif
 
 //#define ASSETS CMAKE_INSTALL_LIBDIR"/PintSizedGameEngine/assets"
+
+/**
+ * @brief Declares the class as non-copyable and non-movable.
+ * 
+ * Simply insert in the public class header section.
+ */
+#define NOCOPY(ClassName) \
+  ClassName(ClassName&&) = delete;                  \
+  ClassName(const ClassName&) = delete;             \
+  ClassName& operator=(const ClassName&) = delete;  \
+  ClassName& operator=(ClassName&&) = delete;
