@@ -17,6 +17,9 @@
 #include "Core/Event/Event.hpp"
 #include "Core/Event/EventSystem.hpp"
 
+#include "Core/Threads/Task.hpp"
+#include "Core/Threads/TaskManager.hpp"
+
 #include "Core/EntityComponentSystem/ECSEntity.hpp"
 #include "Core/EntityComponentSystem/ECSEntity.hpp"
 #include "Core/EntityComponentSystem/ECSManager.hpp"

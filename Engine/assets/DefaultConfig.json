@@ -7,5 +7,7 @@
 
   "log_location": "./",
 
-  "plugins_location": "./Plugins/"
+  "plugins_location": "./Plugins/",
+
+  "task_manager_threads": 4
 }

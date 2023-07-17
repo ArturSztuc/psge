@@ -88,6 +88,9 @@ void Application::Initialize()
 
   LDEBUG("Initializing the keyboard system");
   KeyboardSystem::GetInstance(m_window);
+
+  LDEBUG("Initializing the TaskManager");
+  TaskManager::GetInstance().Initialize(m_config->Get<int>("task_manager_threads", 1));
 }
 
 void Application::LoadPlugins()
@@ -121,6 +124,9 @@ void Application::UpdateGameState()
 
   // Update the event system
   EventSystem::GetInstance().Update();
+
+  // Update the task system
+  TaskManager::GetInstance().Update(m_deltaTime);
 }
 
 void Application::UpdateInput()
