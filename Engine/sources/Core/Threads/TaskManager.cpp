@@ -51,11 +51,7 @@ void TaskManager::Initialize(U8 _numThreads)
     });
   }
 
-  /// @brief Remove the string! Need to update logger...
-  std::string info = "Initialized the task manager with ";
-  info += std::to_string(m_numThreads);
-  info += " threads!";
-  LINFO(info.c_str());
+  LINFO("Initialized the task manager with %i threads!", _numThreads);
 }
 
 TaskPtr TaskManager::GetNextTask()

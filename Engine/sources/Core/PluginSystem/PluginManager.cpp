@@ -20,7 +20,7 @@ bool PluginManager::FindPlugins()
 
   // Check if the plugin folder exists
   if(!boost::filesystem::exists(folder) || !boost::filesystem::is_directory(folder)){
-    LERROR("The plugin folder cannot be found!");
+    LERROR("The plugin folder cannot be found. Location tried: %s", m_pluginsFolder.Data());
     return false;
   }
 
@@ -38,7 +38,7 @@ bool PluginManager::FindPlugins()
     // Does the library export RegisterPlugin function?
     HANDLE handle = LoadSharedLibrary(it->path().string().c_str());
     if(!handle){
-      LWARN("Warning, we found a library it cannot be loaded");
+      LWARN("Warning, we found a library but it cannot be loaded");
       continue;
     }
 
@@ -60,7 +60,7 @@ bool PluginManager::FindPlugins()
     nPlugins++;
   }
 
-  LDEBUG("Loaded XXX plugins. TODO: Allow for extra args in log...");
+  LDEBUG("Loaded %i plugins.", nPlugins);
 
   return (nPlugins != 0) ? true : false;
 }

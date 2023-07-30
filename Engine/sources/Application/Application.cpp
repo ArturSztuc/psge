@@ -15,7 +15,7 @@ Application::Application(const std::string& _configfile)
   LOG_NEW("global", LOG_LEVEL_TRACE, m_config->Get<std::string>("log_location") + "global_log.txt");
 
   LDEBUG("Engine config loaded");
-  LINFO((std::string("Config location: ") +  m_config->GetLocation()).c_str());
+  LINFO("Config location: %s", m_config->GetLocation().data());
 }
 
 void Application::Configure()

@@ -24,7 +24,6 @@ public:
 
   void OnKeyboardEvent(const Event& _event)
   {
-    LTRACE("Keyboard event fired!");
     const KeyboardEvent& keyboardEvent = static_cast<const KeyboardEvent&>(_event);
 
     KeyboardKeyCode code = keyboardEvent.GetCode();
@@ -33,6 +32,7 @@ public:
       m_shouldClose = true;
       LDEBUG("KEY_ESC fired, application will close");
     }
+    LTRACE("Key: %c Fired", code);
   }
 
   void OnEvent(const Event& _event)
