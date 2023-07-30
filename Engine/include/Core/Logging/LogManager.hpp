@@ -20,6 +20,9 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <format>
+#include <stdarg.h>
+
 
 /**
  * @class LogManager
@@ -50,7 +53,8 @@ public:
    */
   void Log(const std::string& _loggerName,
            LogLevel _logLevel,
-           const std::string& _message);
+           const std::string& _message,
+           ...);
 
   /**
    * @brief Writes the messages into file and clears the buffers
@@ -106,29 +110,29 @@ private:
   LogManager::GetInstance().SaveAll()
 
 /// Logs traces for different logger names and messages
-#define LOG_TRACE(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_TRACE, message_)
-#define LOG_DEBUG(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_DEBUG, message_)
-#define LOG_INFO(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_INFO, message_)
-#define LOG_WARN(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_WARN, message_)
-#define LOG_ERROR(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_ERROR, message_)
-#define LOG_FATAL(loggerName_, message_) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_FATAL, message_)
+#define LOG_TRACE(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_TRACE, message_, ##__VA_ARGS__)
+#define LOG_DEBUG(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_DEBUG, message_, ##__VA_ARGS__)
+#define LOG_INFO(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_INFO, message_, ##__VA_ARGS__)
+#define LOG_WARN(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_WARN, message_, ##__VA_ARGS__)
+#define LOG_ERROR(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_ERROR, message_, ##__VA_ARGS__)
+#define LOG_FATAL(loggerName_, message_, ...) \
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_FATAL, message_, ##__VA_ARGS__)
 
 /// General logger macros
-#define LTRACE(message_) \
-  LOG_TRACE("global", message_)
-#define LDEBUG(message_) \
-  LOG_DEBUG("global", message_)
-#define LINFO(message_) \
-  LOG_INFO("global", message_)
-#define LWARN(message_) \
-  LOG_WARN("global", message_)
-#define LERROR(message_) \
-  LOG_ERROR("global", message_)
-#define LFATAL(message_) \
-  LOG_FATAL("global", message_)
+#define LTRACE(message_, ...) \
+  LOG_TRACE("global", message_, ##__VA_ARGS__)
+#define LDEBUG(message_, ...) \
+  LOG_DEBUG("global", message_, ##__VA_ARGS__)
+#define LINFO(message_, ...) \
+  LOG_INFO("global", message_, ##__VA_ARGS__)
+#define LWARN(message_, ...) \
+  LOG_WARN("global", message_, ##__VA_ARGS__)
+#define LERROR(message_, ...) \
+  LOG_ERROR("global", message_, ##__VA_ARGS__)
+#define LFATAL(message_, ...) \
+  LOG_FATAL("global", message_, ##__VA_ARGS__)

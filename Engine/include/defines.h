@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/String/String.hpp"
 
+#define MAX_LOG_BUFFER_SIZE 1024
+
 // Unsigned int types
 typedef unsigned char       U8;
 typedef unsigned short      U16;
