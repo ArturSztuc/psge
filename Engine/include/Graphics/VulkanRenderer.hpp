@@ -21,9 +21,11 @@
 
 // internal includes
 #include "Core/Core.h"
-//#include "Graphics/RendererPluginInterface.hpp"
+#include "Core/PluginSystem/PluginInterface.hpp"
 #include "Core/Window/Window.hpp"
 
+#include "Graphics/Renderer.hpp"
+#include "Graphics/RendererPluginInterface.hpp"
 #include "Graphics/VulkanDevice.hpp"
 namespace psge
 {

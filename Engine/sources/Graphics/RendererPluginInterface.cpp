@@ -1,5 +1,5 @@
-#include "Core/PluginSystem/PluginInterface.hpp"
 #include "Core/Logging/LogManager.hpp"
+#include "Graphics/Renderer.hpp"
 
 namespace psge
 {
