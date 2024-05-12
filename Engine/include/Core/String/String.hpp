@@ -119,16 +119,16 @@ namespace std {
     struct hash<String<MAX_LENGTH>> {
         std::size_t operator()(const String<MAX_LENGTH>& str) const {
             std::size_t hash = 0;
-            const char* data = str.m_data;
+            const char* data = str.Data();
 
-            for (size_t i = 0; i < str.m_length; ++i) {
+            for (size_t i = 0; i < str.Length(); ++i) {
                 hash = (hash * 31) + data[i];  // Adjust the hash algorithm as needed
             }
 
             return hash;
         }
     };
-}
+};
 
 typedef String<4> String4;
 typedef String<8> String8;

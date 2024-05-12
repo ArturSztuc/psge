@@ -136,20 +136,6 @@ bool PluginManager::RegisterPlugin(PluginInfo _info)
   return true;
 }
 
-//bool PluginManager::RegisterPlugin(HANDLE _plugin)
-//{
-//  //char* pluginName          = _plugin->GetUniquePluginName();
-//  //char* pluginInterfaceName = _plugin->GetUniquePluginName();
-//
-//  //PluginInfo info;
-//  //info.pluginName = pluginName;
-//  //info.pluginInterfaceName = pluginInterfaceName;
-//  //info.plugin = (RegisterPluginFunction)_plugin;
-//
-//  //m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
-//  return true;
-//}
-
 //template <class PluginInterface>
 //void PluginManager::RegisterPlugin(PluginInterface* _plugin)
 //{
