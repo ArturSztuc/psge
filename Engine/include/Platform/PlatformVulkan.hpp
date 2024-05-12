@@ -3,8 +3,20 @@
 #include "defines.h"
 #include "Graphics/VulkanRenderer.hpp"
 
+#ifdef PLARFORM_WINDOWS
+#include <vulkan/vulkan_win32.h>
+#elif defined(PLATFORM_ANDROID)
+#include <vulkan/vulkan_android.h>
+#elif defined(PLATFORM_LINUX)
+#include <xcb/xcb.h>
+#include <X11/keysym.h>
+//#include <X11/XKBlib.h>
+//#include <X11/Xlib.h>
+//#include <X11/Xlib-xcb.h>
+#include <vulkan/vulkan_xcb.h>
+#endif
 
-std::vector<const C8*> VulkanRenderer::GetRequiredSurfaceExtensions()
+std::vector<const C8*> psge::VulkanRenderer::GetRequiredSurfaceExtensions()
 {
   std::vector<const C8*> ret;
 
@@ -29,12 +41,12 @@ std::vector<const C8*> VulkanRenderer::GetRequiredSurfaceExtensions()
 return ret;
 }
 
-std::vector<const C8*> VulkanRenderer::GetRequiredWindowExtensions()
+std::vector<const C8*> psge::VulkanRenderer::GetRequiredWindowExtensions()
 {
   std::vector<const C8*> ret;
-#ifdef WINDOW_GLFW
+#ifdef PLATFORM_WINDOW_GLFW
   U32 extensionCount = 0;
-  const U32** extensions;
+  const C8** extensions;
   extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
   ret = std::vector<const C8*>(extensions, extensions+extensionCount);
 #else

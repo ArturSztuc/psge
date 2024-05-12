@@ -15,12 +15,13 @@ template class String<32>;
 template class String<64>;
 template class String<128>;
 
-
 template <size_t MAX_LENGTH>
 String<MAX_LENGTH>::String()
   : m_length(0)
 {
   m_data[0] = '\0';
+  for(int i = 1; i < MAX_LENGTH; ++i)
+    m_data[i] = '0';
 }
 
 template <size_t MAX_LENGTH>
@@ -31,8 +32,15 @@ String<MAX_LENGTH>& String<MAX_LENGTH>::operator=(const String& other)
 }
 
 template <size_t MAX_LENGTH>
-String<MAX_LENGTH>::String(const char* str)
-  : String()
+bool String<MAX_LENGTH>::operator==(const String& rhs) const
+{
+  return Equals(rhs);
+}
+
+
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>::String(const char *str)
+    : String()
 {
   Set(str);
 }
@@ -54,6 +62,8 @@ void String<MAX_LENGTH>::Set(const char* str)
 {
   m_length = std::min(strlen(str), MAX_LENGTH /* -1 */);
   memcpy(m_data, str, m_length);
+  for(int i = m_length; i < MAX_LENGTH; ++i)
+    m_data[i] = '0';
 }
 
 template<size_t MAX_LENGTH>

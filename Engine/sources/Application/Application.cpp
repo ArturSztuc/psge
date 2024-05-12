@@ -11,9 +11,6 @@ Application::Application(const std::string& _configfile)
   // Loads the configuration file
   Configure();
 
-  // Initialising global log
-  LOG_NEW("global", LOG_LEVEL_TRACE, m_config->Get<std::string>("log_location") + "global_log.txt");
-
   LDEBUG("Engine config loaded");
   LINFO("Config location: %s", m_config->GetLocation().data());
 }
@@ -24,8 +21,9 @@ void Application::Configure()
     m_config = new JsonConfigParser(m_configFile);
   else
     m_config = JsonConfigParser::LoadDefaultConfig();
-  
-  m_pluginManager = new PluginManager(*m_config);
+
+  // Initialising global log
+  LOG_NEW("global", LOG_LEVEL_TRACE, std::string(m_config->Get<std::string>("log_location")) + "global_log.txt");
 
   CreateWindow();
 }
@@ -67,7 +65,7 @@ void Application::Run(bool _shouldRun)
     //UpdateCamera();
 
     // Render the gmae
-    //RenderGame();
+    RenderGame();
 
     LOGS_SAVE();
   }
@@ -91,10 +89,24 @@ void Application::Initialize()
 
   LDEBUG("Initializing the TaskManager");
   TaskManager::GetInstance().Initialize(m_config->Get<int>("task_manager_threads", 1));
+
+  LDEBUG("Initializing the renderer");
+  InitializeRenderer();
+}
+
+void Application::InitializeRenderer()
+{
+  RendererConfig config{};
+  config.m_applicationName = (m_config->Get<std::string>("game_title")).data();
+
+  m_renderer = std::make_unique<VulkanRenderer>();
+  m_renderer->Initialize(config);
 }
 
 void Application::LoadPlugins()
 {
+  m_pluginManager = new PluginManager(*m_config);
+
   if (m_pluginManager->FindPlugins())
     LINFO("Found plugins");
   else
@@ -127,6 +139,11 @@ void Application::UpdateGameState()
 
   // Update the task system
   TaskManager::GetInstance().Update(m_deltaTime);
+}
+
+void Application::RenderGame()
+{
+  m_renderer->Render(m_deltaTime);
 }
 
 void Application::UpdateInput()

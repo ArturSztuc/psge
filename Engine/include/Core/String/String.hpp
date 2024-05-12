@@ -45,6 +45,11 @@ public:
 
   String& operator=(const String& other);
 
+  bool operator==(const String& rhs) const;
+
+  // Implicit conversion operator from const char* to String<template>
+  operator const char* () const;
+
   /**
    * @brief Introverted << operator
    * @param _out output stream
@@ -108,6 +113,22 @@ public:
   /// Checks if string ends with a substring
   bool EndsWith   (const String& _substring) const;
 };
+
+namespace std {
+    template <size_t MAX_LENGTH>
+    struct hash<String<MAX_LENGTH>> {
+        std::size_t operator()(const String<MAX_LENGTH>& str) const {
+            std::size_t hash = 0;
+            const char* data = str.m_data;
+
+            for (size_t i = 0; i < str.m_length; ++i) {
+                hash = (hash * 31) + data[i];  // Adjust the hash algorithm as needed
+            }
+
+            return hash;
+        }
+    };
+}
 
 typedef String<4> String4;
 typedef String<8> String8;

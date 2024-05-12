@@ -8,7 +8,7 @@ EventSystem& EventSystem::GetInstance()
 {
     static EventSystem instance;
     return instance;
-};
+}
 
 void EventSystem::Subscribe(const EventType& _type,
                             EventFunction&& _handler)
