@@ -16,6 +16,7 @@ file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hpp
 
 # Engine compiled as a library
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 generate_export_header(${PROJECT_NAME})
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 
@@ -25,12 +26,13 @@ target_include_directories(${PROJECT_NAME}
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                               $<INSTALL_INTERFACE:include>
                               ${GLFW_DIR}/include
+                              ${Vulkan_INCLUDE_DIRS}
                             PRIVATE
                               ${CMAKE_CURRENT_SOURCE_DIR}/src
                           )
 
 # Link the librarie
-target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} nlohmann_json::nlohmann_json Boost::filesystem)
+target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} nlohmann_json::nlohmann_json Boost::filesystem ${Vulkan_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 
 # Install the game engine library and header files

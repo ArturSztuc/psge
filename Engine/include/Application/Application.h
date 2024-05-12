@@ -11,6 +11,7 @@
 #pragma once
 
 #include "Core/Core.h"
+#include "Graphics/Graphics.h"
 
 namespace psge
 {
@@ -70,9 +71,9 @@ public:
    *
    * @param _delta time step from the last frame for simulation
    *
-   * @todo TODO: Use a timestep class instead of double!
+   * @todo TODO: Use a timestep class instead of F64!
    */
-  virtual void OnUserUpdate(double _delta) = 0;
+  virtual void OnUserUpdate(F64 _delta) = 0;
 
   /** 
    * @brief Executes application's response to an event
@@ -119,6 +120,8 @@ protected:
    */
   void LoadPlugins();
 
+  void InitializeRenderer();
+
   /**
    * @brief Checks whether the game simulation should exit
    */
@@ -139,6 +142,8 @@ protected:
    */
   void UpdateInput();
 
+  void RenderGame();
+
 protected:
   /// Checks if the game simulation should close
   bool        m_shouldClose;
@@ -152,11 +157,14 @@ protected:
   /// Stores the window to render the game upon
   Window* m_window;
 
+  //Renderer* m_renderer;
+  std::unique_ptr<Renderer> m_renderer;
+
   PluginManager* m_pluginManager = nullptr;
 
   /// Stores the time
   /// @todo TODO: Change to a time object
-  double m_deltaTime;
+  F64 m_deltaTime;
 };
 
 /**

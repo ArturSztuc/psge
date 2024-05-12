@@ -59,13 +59,15 @@ public:
   /// Resets the frame's time at the beginning of the frame
   void ResetFrame();
 
+  void ResetClock();
+
   /// Measures the elapsed time in milliseconds
   /// @todo TODO: Don't use F32? Time unit class?
-  F32 ElapsedFrame();
+  F64 ElapsedFrame();
 
   /// Elapsed frame time...
   /// @todo TODO: The same as above? Change to ElapsedGlobal?
-  F32 Elapsed();
+  F64 Elapsed();
 
   /// Returns the elapsed time in a form of a string
   std::string GetElapsedString();

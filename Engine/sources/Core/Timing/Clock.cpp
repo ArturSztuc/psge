@@ -11,17 +11,23 @@ void Clock::ResetFrame()
   m_startTimeFrame = ChronoClock::now();
 };
 
-F32 Clock::ElapsedFrame()
+void Clock::ResetClock()
 {
-  auto endTime = ChronoClock::now();
-  return std::chrono::duration<float>(endTime - m_startTimeFrame).count();
+  m_startTimeGlobal = ChronoClock::now();
+  ResetFrame();
 };
 
-F32 Clock::Elapsed()
+F64 Clock::ElapsedFrame()
+{
+  auto endTime = ChronoClock::now();
+  return std::chrono::duration<F64>(endTime - m_startTimeFrame).count();
+};
+
+F64 Clock::Elapsed()
 {
   auto endTime = ChronoClock::now();
   auto diff = endTime - m_startTimeFrame;
-  return std::chrono::duration<F32>(diff).count();
+  return std::chrono::duration<F64>(diff).count();
 }
 
 std::string Clock::GetElapsedString()

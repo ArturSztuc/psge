@@ -2,6 +2,7 @@
 
 # Vulkan is required
 find_package(Vulkan REQUIRED)
+message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 
 # Find GLFW, compile from Externals if not installed
 find_package(glfw3 3.3)
