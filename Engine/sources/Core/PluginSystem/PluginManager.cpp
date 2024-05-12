@@ -3,10 +3,13 @@
 namespace psge
 {
 
-PluginManager::PluginManager(JsonConfigParser _config)
+PluginManager::PluginManager(JsonConfigParser& _config)
 {
   /// @todo TODO: Remove that std::string... need to be able to place char[] and char* and const char* into String<size_t> by default...
   m_pluginsFolder = _config.Get<std::string>("plugins_location", "Plugins/").c_str();
+
+  LTRACE("Constructed a new Plugin Manager");
+  LTRACE("PluginManager: foler %s", m_pluginsFolder.c_str());
 }
 
 PluginManager::~PluginManager()
@@ -16,17 +19,18 @@ PluginManager::~PluginManager()
 bool PluginManager::FindPlugins()
 {
   /// @todo TODO: Using S64.Data() is not safe! Need to edit it to return up to string size.
-  boost::filesystem::path folder(m_pluginsFolder.Data());
+  boost::filesystem::path folder(m_pluginsFolder.c_str());
 
   // Check if the plugin folder exists
   if(!boost::filesystem::exists(folder) || !boost::filesystem::is_directory(folder)){
-    LERROR("The plugin folder cannot be found. Location tried: %s", m_pluginsFolder.Data());
+    LERROR("The plugin folder cannot be found. Location tried: %s", m_pluginsFolder.c_str());
     return false;
   }
 
   U16 nPlugins = 0;
   // Iterate over the files inside the directory
-  for(boost::filesystem::directory_iterator it(folder); it != boost::filesystem::directory_iterator(); ++it){
+  for(boost::filesystem::recursive_directory_iterator it(folder); it != boost::filesystem::recursive_directory_iterator(); ++it){
+    LTRACE(it->path().c_str());
     // Do we have a file?
     if(!boost::filesystem::is_regular_file(it->status()))
       continue;

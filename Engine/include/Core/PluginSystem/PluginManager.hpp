@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 // External defines
 /// @todo TODO: Do we now have boost dependency that we need to include in Externals/CMakes?
@@ -17,7 +18,7 @@
 #include "Core/Logging/LogManager.hpp"
 
 // Pint Sized Game Engine plugin interfaces
-#include "Graphics/RendererPluginInterface.hpp"
+//#include "Graphics/RendererPluginInterface.hpp"
 #include "Platform/PlatformFileManager.hpp"
 
 /// @todo TODO: This is perhaps not needed? Each Interface could define it's own PluginRegistry. On the other nice, it would be nice to have them all in one place...
@@ -78,10 +79,10 @@ namespace psge
   private:
     /// @brief Location of the plugins
     /// @todo TODO: Make this a vector, so we can have multiple e.g. user-defined locations
-    S64 m_pluginsFolder;
+    std::string m_pluginsFolder;
 
     /// @brief Map of the available plugins
-    std::unordered_map<char*, PluginInfo> m_availablePlugins;
+    std::unordered_map<S32, PluginInfo> m_availablePlugins;
 
   // Private member functions
   private:
@@ -106,7 +107,7 @@ namespace psge
 
   // Public member functions
   public:
-    PluginManager(JsonConfigParser _config);
+    PluginManager(JsonConfigParser& _config);
     ~PluginManager();
 
     /**
