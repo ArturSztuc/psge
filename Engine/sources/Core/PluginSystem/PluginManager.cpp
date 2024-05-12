@@ -9,7 +9,7 @@ PluginManager::PluginManager(JsonConfigParser& _config)
   m_pluginsFolder = _config.Get<std::string>("plugins_location", "Plugins/").c_str();
 
   LTRACE("Constructed a new Plugin Manager");
-  LTRACE("PluginManager: foler %s", m_pluginsFolder.c_str());
+  LTRACE("PluginManager: folder %s", m_pluginsFolder.c_str());
 }
 
 PluginManager::~PluginManager()
@@ -43,6 +43,8 @@ bool PluginManager::FindPlugins()
     HANDLE handle = LoadSharedLibrary(it->path().string().c_str());
     if(!handle){
       LWARN("Warning, we found a library but it cannot be loaded");
+      LWARN(it->path().string().c_str());
+      LWARN("Warning, we found a library but it cannot be loaded");
       continue;
     }
 
@@ -53,6 +55,7 @@ bool PluginManager::FindPlugins()
     if(!registerFunction){
       LWARN("Warning, we found a library but we cannot find the exported \"RegisterPlugin\" function!");
       UnloadSharedLibrary(handle);
+      continue;
     }
 
     // Call the "RegisterPlugin" function to register the plugin with this PluginManager
@@ -93,12 +96,13 @@ std::unique_ptr<IPlugin> PluginManager::GetPlugin(S32 _pluginInterfaceName)
 //{
 //}
 
-void* PluginManager::LoadSharedLibrary(S64 _file)
+void* PluginManager::LoadSharedLibrary(S128 _file)
 {
   HANDLE handle = GET_LIB(_file.Data());
   if(!handle){
     LERROR("Failed to load a shared library!");
     LERROR(GET_LIB_ERROR);
+    LERROR(_file.Data());
     return nullptr;
   }
   return handle;
@@ -107,6 +111,8 @@ void* PluginManager::LoadSharedLibrary(S64 _file)
 void* PluginManager::GetFunctionAddress(HANDLE _handle, const S64& _functionName)
 {
   HANDLE address = nullptr;
+  LTRACE("Trying to get function name from a library:");
+  LTRACE(_functionName.Data());
   address = GET_LIB_FUNCTION(_handle, _functionName.Data());
   if(!address){
     LERROR("Failed to load exported function from a shared library!");
@@ -115,19 +121,34 @@ void* PluginManager::GetFunctionAddress(HANDLE _handle, const S64& _functionName
   return address;
 }
 
-bool PluginManager::RegisterPlugin(HANDLE _plugin)
+bool PluginManager::RegisterPlugin(PluginInfo _info)
 {
-  //char* pluginName          = _plugin->GetUniquePluginName();
-  //char* pluginInterfaceName = _plugin->GetUniquePluginName();
+  // Don't register if already exists
+  if (m_availablePlugins.count(_info.pluginInterfaceName)) {
+    LERROR("Tried to load a plugin, but it would clash with an already-existing one! Not loading.");
+    return false;
+  }
 
-  //PluginInfo info;
-  //info.pluginName = pluginName;
-  //info.pluginInterfaceName = pluginInterfaceName;
-  //info.plugin = (RegisterPluginFunction)_plugin;
+  // Register the plugin
+  m_availablePlugins[_info.pluginInterfaceName];
 
-  //m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
+
   return true;
 }
+
+//bool PluginManager::RegisterPlugin(HANDLE _plugin)
+//{
+//  //char* pluginName          = _plugin->GetUniquePluginName();
+//  //char* pluginInterfaceName = _plugin->GetUniquePluginName();
+//
+//  //PluginInfo info;
+//  //info.pluginName = pluginName;
+//  //info.pluginInterfaceName = pluginInterfaceName;
+//  //info.plugin = (RegisterPluginFunction)_plugin;
+//
+//  //m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
+//  return true;
+//}
 
 //template <class PluginInterface>
 //void PluginManager::RegisterPlugin(PluginInterface* _plugin)

@@ -21,7 +21,9 @@ String<MAX_LENGTH>::String()
 {
   m_data[0] = '\0';
   for(int i = 1; i < MAX_LENGTH; ++i)
-    m_data[i] = '0';
+    m_data[i] = '\0';
+  //m_data[MAX_LENGTH - 1] = '\0';
+
 }
 
 template <size_t MAX_LENGTH>
@@ -60,10 +62,12 @@ String<MAX_LENGTH>::~String()
 template <size_t MAX_LENGTH>
 void String<MAX_LENGTH>::Set(const char* str)
 {
-  m_length = std::min(strlen(str), MAX_LENGTH /* -1 */);
+  m_length = std::min(strlen(str), MAX_LENGTH - 1);
   memcpy(m_data, str, m_length);
   for(int i = m_length; i < MAX_LENGTH; ++i)
     m_data[i] = '0';
+
+  m_data[m_length] = '\0';
 }
 
 template<size_t MAX_LENGTH>

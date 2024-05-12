@@ -46,18 +46,6 @@
 
 namespace psge
 {
-
-  /**
-   * @class PluginManager
-   * @brief Manages all the plugin interfaces and their individual plugins
-   * 
-   * @todo TODO: This doesn't sit with me well. It needs to be more generalized...
-   * @todo TODO: Perhaps: each plugin interface is a string, e.g. "RendererPluginInterface" and we only have one GetPlugin(S32 _pluginInterfaceName)
-   */
-  class PluginManager
-  {
-  typedef void (*RegisterPluginFunction)(PluginManager*);
-
   /**
    * @struct PluginInfo
    * @brief Holder of the plugin information, including it's full interface
@@ -72,9 +60,21 @@ namespace psge
     HANDLE plugin;
     /// @brief Handle to the Plugin's Create function
     std::function<std::unique_ptr<IPlugin>()> createFunction;
-    /// @brief Handle to the Plugin's Destroy function
-    std::function<std::unique_ptr<IPlugin>()> destroyFunction;
+    ///// @brief Handle to the Plugin's Destroy function
+    //std::function<std::unique_ptr<IPlugin>()> destroyFunction;
   };
+
+  /**
+   * @class PluginManager
+   * @brief Manages all the plugin interfaces and their individual plugins
+   * 
+   * @todo TODO: This doesn't sit with me well. It needs to be more generalized...
+   * @todo TODO: Perhaps: each plugin interface is a string, e.g. "RendererPluginInterface" and we only have one GetPlugin(S32 _pluginInterfaceName)
+   */
+  class PluginManager
+  {
+  typedef void (*RegisterPluginFunction)(PluginManager*);
+
   // Private data members
   private:
     /// @brief Location of the plugins
@@ -92,7 +92,7 @@ namespace psge
      * @param _libraryPath path of the library (determined by FindPlugins)
      * @return void* RegisterPlugin function!
      */
-    void* LoadSharedLibrary(S64 _libraryPath);
+    void* LoadSharedLibrary(S128 _libraryPath);
 
     void UnloadSharedLibrary(HANDLE _handle);
 
@@ -121,5 +121,7 @@ namespace psge
     std::unique_ptr<IPlugin> GetPlugin(S32 _pluginInterfaceName);
 
     bool RegisterPlugin(HANDLE _plugin);
+
+    bool RegisterPlugin(PluginInfo _info);
   };
 };
