@@ -17,9 +17,11 @@ add_subdirectory(Engine)
 
 ## Sandbox application
 add_subdirectory(Game)
-#
-## Unit tests
-#add_subdirectory(UnitTests)
+
+add_subdirectory(Plugins)
+
+# Unit tests
+add_subdirectory(UnitTests)
 #
 #include(Externals/dependency-graph.cmake)
 #gen_dep_graph(png)

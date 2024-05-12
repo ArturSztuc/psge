@@ -6,6 +6,7 @@ TEST(TimingTests, Clock)
 {
   // Initializes the clock!
   Clock::GetInstance();
+  Clock::GetInstance().ResetClock();
 
   // No seconds passed yet
   EXPECT_EQ(Clock::GetInstance().GetElapsedString(), "00:00:00");

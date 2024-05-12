@@ -61,7 +61,6 @@ TEST(DataStructuresTests, LockFreeQueueTests)
   // Create variable to test
   double par = 555.555;
 
-  std::cout << "W" << std::endl;
   // Create a queue and see if it's empty
   LockFreeQueue<double> lqueue;
   EXPECT_TRUE(lqueue.Empty());

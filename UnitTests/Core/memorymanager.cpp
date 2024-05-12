@@ -71,4 +71,21 @@ TEST(MemoryManagerTests, MemoryManager)
   EXPECT_EQ(MEMALLOC().GetAllocationCount<Datum>(), 3);
   EXPECT_EQ(MEMALLOC().GetAllocationCount<BigData>(), 2);
   EXPECT_EQ(MEMALLOC().GetAllocationCount<double>(), 4);
+
+  MEMALLOC().Deallocate<Datum>(datum1);
+  MEMALLOC().Deallocate<Datum>(datum2);
+  MEMALLOC().Deallocate<Datum>(datum3);
+
+  MEMALLOC().Deallocate<BigData>(datoha1);
+  MEMALLOC().Deallocate<BigData>(datoha2);
+
+  MEMALLOC().Deallocate<double>(d1);
+  MEMALLOC().Deallocate<double>(d2);
+  MEMALLOC().Deallocate<double>(d3);
+  MEMALLOC().Deallocate<double>(d4);
+
+  EXPECT_EQ(MEMALLOC().GetAllocatorTypes(), 3);
+  EXPECT_EQ(MEMALLOC().GetAllocationCount<Datum>(), 0);
+  EXPECT_EQ(MEMALLOC().GetAllocationCount<BigData>(), 0);
+  EXPECT_EQ(MEMALLOC().GetAllocationCount<double>(), 0);
 }

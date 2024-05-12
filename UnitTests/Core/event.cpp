@@ -47,7 +47,7 @@ struct Object
     // Don't continue if wrong object chosen
     if(!(collision.GetId1() == m_id || collision.GetId2() == m_id )){
       // TODO: Ideally we would want to implement the event system in a way that this will never ever be triggered...
-      std::cout << "NOPE!" << std::endl;
+      std::cout << "Ideally you would never see this message with well-implemented event system!" << std::endl;
       return;
     }
 
@@ -115,11 +115,8 @@ TEST(EventSystemTests, EventSystemTests)
   EventSystem::GetInstance().Update();
   EventSystem::GetInstance().Update();
 
-  // TODO: very, very bad. for some reason with float it fails because -30 is nto the same as -30...
-  EXPECT_EQ(int(obj1.m_speed), int(-30));
-
-  // TODO: This should fail, but for some reason doesn't. Stupid... need to fogure out why
-  EXPECT_NE(obj1.m_speed, -30);
+  //EXPECT_NEAR(obj1.m_speed, -30.0, 0.00001);
+  EXPECT_FLOAT_EQ(obj1.m_speed, -30.0);
 
   EXPECT_EQ(obj2.m_speed, 0.0);
 }
