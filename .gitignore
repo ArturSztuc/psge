@@ -6,6 +6,7 @@ Doxyfile
 # Folders
 *.cache/
 build/
+install/
 html/
 latex/
 .vscode/
