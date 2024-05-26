@@ -5,10 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
-
-// External defines
-/// @todo TODO: Do we now have boost dependency that we need to include in Externals/CMakes?
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 // Internal defines
 #include "defines.h"
@@ -18,7 +15,7 @@
 #include "Core/Logging/LogManager.hpp"
 
 // Pint Sized Game Engine plugin interfaces
-//#include "Graphics/RendererPluginInterface.hpp"
+#include "Graphics/RendererPluginInterface.hpp"
 #include "Platform/PlatformFileManager.hpp"
 
 /// @todo TODO: This is perhaps not needed? Each Interface could define it's own PluginRegistry. On the other nice, it would be nice to have them all in one place...
@@ -84,6 +81,9 @@ namespace psge
     /// @brief Map of the available plugins
     std::unordered_map<S32, PluginInfo> m_availablePlugins;
 
+    /// @brief A pointer to the plugin factory for the renderers/graphic engines
+    std::shared_ptr<RendererPluginFactory> m_rendererPluginFactory;
+
   // Private member functions
   private:
     /**
@@ -122,6 +122,18 @@ namespace psge
 
     bool RegisterPlugin(HANDLE _plugin);
 
-    bool RegisterPlugin(PluginInfo _info);
+    /**
+     * @brief Registers a renderer plugin's function
+     * @param _pluginName Name of the new plugin's class
+     * @param _fac Function that constructs the plugin
+     */
+    void RegisterRendererPlugin(const S32& _pluginName, std::function<std::unique_ptr<RendererPluginInterface>()> _fac){
+      LINFO("We will attempt to register plugin with name %s", _pluginName.Data());
+
+      std::function<std::unique_ptr<RendererPluginInterface>()> fac = _fac;
+        m_rendererPluginFactory->Register(_pluginName, fac);
+    }
   };
 };
+
+extern "C" PSGE_API void RegisterPlugin(psge::PluginManager* _manager);

@@ -1,2 +1,24 @@
-@PACKAGE_INIT@
-check_required_components(PintSizedGameEngine)
+# Compute installation prefix relative to this file.
+get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
+get_filename_component(_prefix "${_dir}/.." ABSOLUTE)
+
+# Import the targets.
+include("${_prefix}/../../PintSizedGameEngine/PintSizedGameEngine/PintSizedGameEngineConfig.cmake")
+
+# Set the installation prefix
+set(PintSizedGameEngine_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+
+# Set include directories
+set(PintSizedGameEngine_INCLUDE_DIRS "${PintSizedGameEngine_INSTALL_PREFIX}/include/PintSizedGameEngine")
+
+# Set library directories
+set(PintSizedGameEngine_LIBRARY_DIRS "${PintSizedGameEngine_INSTALL_PREFIX}/lib/PintSizedGameEngine")
+
+# Set the libraries to link against
+set(PintSizedGameEngine_LIBRARIES PintSizedGameEngine)
+
+# Export the include directories and libraries
+include(CMakeFindDependencyMacro)
+
+## Define the targets for finding PintSizedGameEngine
+set(PintSizedGameEngine_FOUND TRUE)

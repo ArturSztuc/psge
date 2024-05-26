@@ -2,6 +2,8 @@
 
 #include "defines.h"
 
+#include "Core/PluginSystem/IPlugin.hpp"
+
 #include <memory>
 #include <array>
 
@@ -30,7 +32,7 @@ namespace psge
  * @tparam Interface class that determines plugin's interface, e.g. Renderer
  */
 template<typename Interface>
-class PluginInterface
+class PluginInterface : public IPlugin
 {
 private:
   S32   m_pluginName;
@@ -87,7 +89,7 @@ public:
    * 
    * @return S32 Plugin's unique name
    */
-  const S32 GetPluginName() const { return m_pluginName; }
+  virtual S32 GetPluginName() const { return m_pluginName; }
 
   const S128 GetPluginDescription() const {return m_pluginDescription; }
 
@@ -97,12 +99,12 @@ public:
 
   const U8* GetVersion() const {return m_version.data(); }
 
-  /**
-   * @brief Get the plugin's interface name
-   * 
-   * @return S32 Plugin's interface name
-   */
-  virtual S32 GetPluginInterfaceName() = 0;
+  ///**
+  // * @brief Get the plugin's interface name
+  // * 
+  // * @return S32 Plugin's interface name
+  // */
+  //virtual S32 GetPluginInterfaceName() = 0;
 
 };
 
