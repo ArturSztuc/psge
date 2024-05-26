@@ -98,14 +98,6 @@ public:
   const S32 GetPluginCopyright() const {return m_copyright; }
 
   const U8* GetVersion() const {return m_version.data(); }
-
-  ///**
-  // * @brief Get the plugin's interface name
-  // * 
-  // * @return S32 Plugin's interface name
-  // */
-  //virtual S32 GetPluginInterfaceName() = 0;
-
 };
 
 class ExampleInterface : public PluginInterface<ExampleInterface>

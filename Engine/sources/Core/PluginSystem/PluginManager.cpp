@@ -8,8 +8,7 @@ PluginManager::PluginManager(JsonConfigParser& _config)
   /// @todo TODO: Remove that std::string... need to be able to place char[] and char* and const char* into String<size_t> by default...
   m_pluginsFolder = _config.Get<std::string>("plugins_location", "Plugins/").c_str();
 
-  LTRACE("Constructed a new Plugin Manager");
-  LTRACE("PluginManager: folder %s", m_pluginsFolder.c_str());
+  LTRACE("Constructed the PluginManager, folder to look for plugins: %s", m_pluginsFolder.c_str());
 }
 
 PluginManager::~PluginManager()
@@ -18,33 +17,32 @@ PluginManager::~PluginManager()
 
 bool PluginManager::FindPlugins()
 {
-  /// @todo TODO: Using S64.Data() is not safe! Need to edit it to return up to string size.
-  boost::filesystem::path folder(m_pluginsFolder.c_str());
+  std::filesystem::path folder(m_pluginsFolder.c_str());
 
   // Check if the plugin folder exists
-  if(!boost::filesystem::exists(folder) || !boost::filesystem::is_directory(folder)){
+  if(!std::filesystem::exists(folder) || !std::filesystem::is_directory(folder)){
     LERROR("The plugin folder cannot be found. Location tried: %s", m_pluginsFolder.c_str());
     return false;
   }
 
   U16 nPlugins = 0;
   // Iterate over the files inside the directory
-  for(boost::filesystem::recursive_directory_iterator it(folder); it != boost::filesystem::recursive_directory_iterator(); ++it){
-    LTRACE(it->path().c_str());
+  for(const auto& entry : std::filesystem::recursive_directory_iterator(folder)){
+
+    LTRACE("Trying to load as a plugin: %s", entry.path().c_str());
     // Do we have a file?
-    if(!boost::filesystem::is_regular_file(it->status()))
+    if(!std::filesystem::is_regular_file(entry.status()))
       continue;
     
     // Is the file a compiled shared library?
-    if (it->path().extension() != ".so" && it->path().extension() != ".dll")
+    if (entry.path().extension() != ".so" && entry.path().extension() != ".dll")
       continue;
 
     // Does the library export RegisterPlugin function?
-    HANDLE handle = LoadSharedLibrary(it->path().string().c_str());
+    HANDLE handle = LoadSharedLibrary(entry.path().string().c_str());
     if(!handle){
       LWARN("Warning, we found a library but it cannot be loaded");
-      LWARN(it->path().string().c_str());
-      LWARN("Warning, we found a library but it cannot be loaded");
+      LWARN(entry.path().string().c_str());
       continue;
     }
 
@@ -90,12 +88,6 @@ std::unique_ptr<IPlugin> PluginManager::GetPlugin(S32 _pluginInterfaceName)
   return nullptr;
 }
 
-///// @todo TODO: It's dumb that we have PluginInterface and _pluginInterfaceName, sort this out...
-//template <class PluginInterface>
-//void PluginManager::RegisterPluginInterface(S32 _pluginInterfaceName)
-//{
-//}
-
 void* PluginManager::LoadSharedLibrary(S128 _file)
 {
   HANDLE handle = GET_LIB(_file.Data());
@@ -110,44 +102,16 @@ void* PluginManager::LoadSharedLibrary(S128 _file)
 
 void* PluginManager::GetFunctionAddress(HANDLE _handle, const S64& _functionName)
 {
-  HANDLE address = nullptr;
+  //HANDLE address = nullptr;
   LTRACE("Trying to get function name from a library:");
   LTRACE(_functionName.Data());
-  address = GET_LIB_FUNCTION(_handle, _functionName.Data());
+  HANDLE address = (HANDLE)GET_LIB_FUNCTION(_handle, _functionName.Data());
   if(!address){
     LERROR("Failed to load exported function from a shared library!");
     LERROR(GET_LIB_ERROR);
+    CLOSE_LIB(address);
+    return nullptr;
   }
   return address;
 }
-
-bool PluginManager::RegisterPlugin(PluginInfo _info)
-{
-  // Don't register if already exists
-  if (m_availablePlugins.count(_info.pluginInterfaceName)) {
-    LERROR("Tried to load a plugin, but it would clash with an already-existing one! Not loading.");
-    return false;
-  }
-
-  // Register the plugin
-  m_availablePlugins[_info.pluginInterfaceName];
-
-
-  return true;
-}
-
-//template <class PluginInterface>
-//void PluginManager::RegisterPlugin(PluginInterface* _plugin)
-//{
-//  char* pluginName          = _plugin->GetUniquePluginName();
-//  char* pluginInterfaceName = _plugin->GetUniquePluginName();
-//
-//  PluginInfo info;
-//  info.pluginName = pluginName;
-//  info.pluginInterfaceName = pluginInterfaceName;
-//  info.plugin = (RegisterPluginFunction)_plugin;
-//
-//  m_availablePlugins[pluginName] = std::move(std::make_unique<void*>(_plugin));
-//}
-
 };

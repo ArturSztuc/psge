@@ -21,6 +21,8 @@
 #include <Core/PluginSystem/PluginManager.hpp>
 #include <Core/Logging/LogManager.hpp>
 #include <Core/Window/Window.hpp>
+#include <Core/PluginSystem/AbstractFactory.hpp>
+#include <Platform/PlatformFileManager.hpp>
 
 #define VK_CHECK(call)                                      \
   do                                                        \
@@ -153,6 +155,9 @@ namespace psge
                        "No license?",
                        m_v);
 
+    static std::unique_ptr<RendererPluginInterface> Create() { return std::make_unique<RendererTestPlugin>(); } 
+
+
     NOCOPY(RendererTestPlugin);
 
     void OnUserCreate();
@@ -170,16 +175,11 @@ namespace psge
     B8 EndFrame(F64 _deltaTime);
   };
 
-extern "C" void RegisterPlugin(PluginManager* _manager)
-{
-  PluginInfo _info;
-  _info.pluginName = "RendererTestPlugin";
-  _info.pluginInterfaceName = "RendererPluginInterface";
-  //_info.createFunction = []() -> std::unique_ptr<IPlugin>{
-  //    return std::make_unique<RendererTestPlugin>();
-  //};
-  _manager->RegisterPlugin(_info);
-}
-
   
 }; // namespace psge
+
+extern "C" PSGE_API void RegisterPlugin(psge::PluginManager* _manager)
+{
+  std::function<std::unique_ptr<psge::RendererPluginInterface>()> func = []() { return std::make_unique<psge::RendererTestPlugin>(); };
+  _manager->RegisterRendererPlugin("TestPlugin", func);//std::function<std::unique_ptr<RendererPluginInterface()>>(RendererTestPlugin::Create()));
+}

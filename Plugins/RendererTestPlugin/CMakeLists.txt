@@ -3,30 +3,35 @@ set(NAME RendererTestPlugin)
 
 include(${CMAKE_SOURCE_DIR}/Externals/CMakeLists.txt)
 
-find_package(PintSizedGameEngine)
+find_package(PintSizedGameEngine) # REQUIRED PATHS ${CMAKE_PREFIX_PATH} NO_DEFAULT_PATH)
 if(PintSizedGameEngine_FOUND)
-  message("Found Pint Sized Game Engine!")
+  message(STATUS "Found Pint Sized Game Engine!")
+else()
+  #message(FATAL_ERROR "Not found Pint Sized Game Engine...")
 endif(PintSizedGameEngine_FOUND)
 
+include_directories(${PintSizedGameEngine_INCLUDE_DIRS})
+
 # Get all the game sources
-file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/*.cpp)
-file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/*.hpp)
+file(GLOB_RECURSE SOURCESS ${PROJECT_SOURCE_DIR}/*.cpp)
+file(GLOB_RECURSE HEADERSS ${PROJECT_SOURCE_DIR}/*.hpp)
 
 # Add the game executable
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${SOURCESS})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${HEADERS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${HEADERSS})
 
-## Set the name of the output shared library (adjust as needed).
-#set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-#
 ## Link the engine library
-target_link_libraries(${PROJECT_NAME} PintSizedGameEngine glfw ${GLFW_LIBRARIES} nlohmann_json::nlohmann_json Boost::filesystem)
+target_link_libraries(${PROJECT_NAME} 
+                #PintSizedGameEngine
+                ${PintSizedGameEngine_LIBRARY_DIRS}/lib${PintSizedGameEngine_LIBRARIES}.so
+                glfw ${GLFW_LIBRARIES}
+                nlohmann_json::nlohmann_json
+                Boost::filesystem)
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${PintSizedGameEngine_INCLUDE_DIRS})
-#
-#set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Plugins)
-#
+
 set(ASSETS_DIR "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/assets/")
 add_compile_definitions(ASSETS_DIR="${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/assets/")
 add_definitions(-DASSETS_DIR="${ASSETS_DIR}")
