@@ -22,6 +22,8 @@ std::string FormatLogMessage(const std::string& _message, va_list args) {
 
 void LogManager::Log(const std::string& _loggerName,
                      LogLevel _logLevel,
+                     const std::string& _location,
+                     const int& _line,
                      const std::string& _message,
                      ...)
 {
@@ -31,6 +33,15 @@ void LogManager::Log(const std::string& _loggerName,
 
   // Use the ugly helper function :(
   std::string message = FormatLogMessage(_message, args);
+
+  std::filesystem::path path(_location);
+  std::string prepend = "[";
+  prepend += path.filename().string();
+  prepend += "::";
+  prepend += std::to_string(_line);
+  prepend += "] ";
+
+  message.insert(0, prepend);
 
   // Clean up the va_list pointer
   va_end(args);
@@ -50,7 +61,14 @@ void LogManager::RegisterLogFile(const std::string& _loggerName,
                                  const std::string& _filename)
 {
   m_logFiles[_loggerName][_logLevel] = _filename;
-  Log(_loggerName, LOG_LEVEL_INFO, "Logger initialized");
+  Log(_loggerName, LOG_LEVEL_INFO, __FILE__, __LINE__, "Logger initialized");
+
+  Log(_loggerName, LOG_LEVEL_TRACE, __FILE__, __LINE__, "Log example: trace");
+  Log(_loggerName, LOG_LEVEL_DEBUG, __FILE__, __LINE__, "Log example: debug");
+  Log(_loggerName, LOG_LEVEL_INFO, __FILE__, __LINE__, "Log example: info");
+  Log(_loggerName, LOG_LEVEL_WARN, __FILE__, __LINE__, "Log example: warning");
+  Log(_loggerName, LOG_LEVEL_ERROR, __FILE__, __LINE__, "Log example: error");
+  Log(_loggerName, LOG_LEVEL_FATAL, __FILE__, __LINE__, "Log example: fatal");
 }
 
 void LogManager::SaveAll(const std::string& _loggerName)

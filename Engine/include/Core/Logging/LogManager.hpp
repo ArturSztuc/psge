@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <format>
 #include <stdarg.h>
+#include <filesystem>
 
 
 /**
@@ -53,6 +54,8 @@ public:
    */
   void Log(const std::string& _loggerName,
            LogLevel _logLevel,
+           const std::string& _location,
+           const int& _line,
            const std::string& _message,
            ...);
 
@@ -111,17 +114,17 @@ private:
 
 /// Logs traces for different logger names and messages
 #define LOG_TRACE(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_TRACE, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_TRACE, __FILE__, __LINE__, message_, ##__VA_ARGS__)
 #define LOG_DEBUG(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_DEBUG, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_DEBUG, __FILE__, __LINE__, message_, ##__VA_ARGS__)
 #define LOG_INFO(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_INFO, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_INFO,  __FILE__, __LINE__, message_, ##__VA_ARGS__)
 #define LOG_WARN(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_WARN, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_WARN,  __FILE__, __LINE__, message_, ##__VA_ARGS__)
 #define LOG_ERROR(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_ERROR, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_ERROR, __FILE__, __LINE__, message_, ##__VA_ARGS__)
 #define LOG_FATAL(loggerName_, message_, ...) \
-  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_FATAL, message_, ##__VA_ARGS__)
+  LogManager::GetInstance().Log(loggerName_, LOG_LEVEL_FATAL, __FILE__, __LINE__, message_, ##__VA_ARGS__)
 
 /// General logger macros
 #define LTRACE(message_, ...) \

@@ -16,7 +16,9 @@ void Logger::Log(LogLevel _logLevel, const std::string& _message)
     return;
 
   std::stringstream ss;
-  ss << Clock::GetInstance().GetElapsedString() << " [" << m_logLevelNameMap[_logLevel] << "]: " << _message;
+  ss << "\033[" << m_logLevelColourMap[_logLevel] << "m" 
+     << Clock::GetInstance().GetElapsedString() << " [" << m_logLevelNameMap[_logLevel] << "]: " << _message
+     << "\033[0m";
   m_messages.push_back(ss.str());
 }
 
@@ -26,7 +28,7 @@ void Logger::WriteToFile(const std::string& _filename)
   file.open(_filename, std::ios_base::app);
   for(const auto& message : m_messages){
     file << message << std::endl;
-    //std::cout << message << std::endl;
+    std::cout << message << std::endl;
   }
 }
 

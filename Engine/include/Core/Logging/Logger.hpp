@@ -82,6 +82,14 @@ private:
                   {LOG_LEVEL_ERROR, "ERROR"},
                   {LOG_LEVEL_FATAL, "FATAL"}};
 
+  std::map<LogLevel, std::string> m_logLevelColourMap =
+                {{LOG_LEVEL_TRACE, "0;39"},
+                 {LOG_LEVEL_DEBUG, "1;39"},
+                 {LOG_LEVEL_INFO,  "1;34"},
+                 {LOG_LEVEL_WARN,  "1;33"},
+                 {LOG_LEVEL_ERROR, "1;31"},
+                 {LOG_LEVEL_FATAL, "1;41"}};
+
   /// Level of this logger
   LogLevel m_logLevel;
 

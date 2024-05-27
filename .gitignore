@@ -1,6 +1,7 @@
 # Files
 *.ycm_extra_conf.py
 *.swp
+*global_log.txt
 Doxyfile
 
 # Folders
