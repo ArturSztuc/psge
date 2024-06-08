@@ -1,6 +1,9 @@
 #pragma once
 
 // std includes
+#include <optional>
+#include <vector>
+#include <set>
 
 // Vulkan includes
 #include <vulkan/vulkan.h>
@@ -10,6 +13,17 @@
 
 namespace psge
 {
+  struct QueueFamilyIndices
+  {
+    std::optional<U32> graphicsFamily;
+    std::optional<U32> presentFamily;
+
+    B8 IsComplete()
+    {
+      return (graphicsFamily.has_value() && presentFamily.has_value());
+    }
+  };
+
   class VulkanDevice
   {
   // public member functions
@@ -26,6 +40,16 @@ namespace psge
     B8 PickPhysicalDevice();
     U32 ScoreDevice(const VkPhysicalDevice& _device);
 
+    B8 CreateLogicalDevice();
+
+    /**
+     * @brief Finds vulkan queue families
+     * 
+     * @param _device physical device that supports vulkan
+     * @return U32 
+     */
+    QueueFamilyIndices FindQueueFamilies(const VkPhysicalDevice& _device);
+
   // private class data members
   private:
     /// @brief Pointer to our vulkan instance
@@ -39,6 +63,8 @@ namespace psge
 
     /// @brief Physical vulkan device
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+
+    /// @brief Physical vulkan device properties
     VkPhysicalDeviceProperties m_properties;
 
     /// @brief Logical vulkan device
@@ -46,5 +72,9 @@ namespace psge
 
     /// @brief Properties of the physical vulkan device
     VkPhysicalDeviceProperties m_deviceProperties;
+
+    /// @brief List of required device extensions
+    /// @todo Hard-coded!
+    const std::vector<const C8*>  m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   };
 };
