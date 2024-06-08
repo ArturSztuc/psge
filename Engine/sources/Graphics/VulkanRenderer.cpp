@@ -114,7 +114,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
   // Get the device
   /// @todo: put this into a function...
-  m_device = std::make_unique<VulkanDevice>(m_window, m_instance, m_memoryAllocator);
+  m_device = std::make_unique<VulkanDevice>(m_window, m_instance, m_usingValidationLayers, GetRequiredValidationLayers(), m_memoryAllocator);
   if (!m_device) {
     LFATAL("Failed to create vulkan device!");
     return false;

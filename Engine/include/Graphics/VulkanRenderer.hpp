@@ -17,7 +17,6 @@
 // Vulkan includes
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <vulkan/vk_enum_string_helper.h>
 
 // internal includes
 #include "Core/Core.h"
@@ -27,20 +26,9 @@
 #include "Graphics/Renderer.hpp"
 #include "Graphics/RendererPluginInterface.hpp"
 #include "Graphics/VulkanDevice.hpp"
+
 namespace psge
 {
-
-#define VK_CHECK(call)                                      \
-  do                                                        \
-  {                                                         \
-    VkResult result = (call);                               \
-    if (result != VK_SUCCESS)                               \
-    {                                                       \
-      LERROR("Vulkan error: %s", string_VkResult(result));  \
-      std::abort();                                         \
-    }                                                       \
-  } while (0)
-
   /**
    * @class VulkanRenderer
    * @brief Vulkan implementation of a rendering engine, main interface.
