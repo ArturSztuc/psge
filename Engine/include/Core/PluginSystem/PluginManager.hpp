@@ -120,18 +120,28 @@ namespace psge
 
     std::unique_ptr<IPlugin> GetPlugin(S32 _pluginInterfaceName);
 
-    bool RegisterPlugin(HANDLE _plugin);
-
     /**
      * @brief Registers a renderer plugin's function
      * @param _pluginName Name of the new plugin's class
      * @param _fac Function that constructs the plugin
      */
-    void RegisterRendererPlugin(const S32& _pluginName, std::function<std::unique_ptr<RendererPluginInterface>()> _fac){
+    void RegisterRendererPlugin(const S32& _pluginName,
+                                std::function<std::unique_ptr<RendererPluginInterface>()> _fac)
+    {
       LINFO("We will attempt to register plugin with name %s", _pluginName.Data());
 
+      // Check if the plugin doesn't already exist
+      if (m_availablePlugins.count(_pluginName)) {
+        LERROR("Plugin with name %s is already registered, cannot register again!", _pluginName.Data());
+        return;
+      }
+
+      // Register the plugin in our factory
       std::function<std::unique_ptr<RendererPluginInterface>()> fac = _fac;
-        m_rendererPluginFactory->Register(_pluginName, fac);
+      m_rendererPluginFactory->Register(_pluginName, fac);
+
+      // Add plugin info to our list of available plugins
+      //m_availablePlugins[_pluginName] = _pluginInfo;
     }
   };
 };

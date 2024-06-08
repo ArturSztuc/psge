@@ -61,10 +61,17 @@ namespace psge
     /// @brief Vulkan instance
     VkInstance m_instance;
 
+    /// @brief Vulkan debugging messanger
+    VkDebugUtilsMessengerEXT m_debugMessenger;
+
     /// Device object
     // std::unique_ptr<VulkanDevice> m_device;
 
     VkCommandPool m_commandPool;
+
+    /// Custom memory allocator
+    /// @todo: Create custom memory allocation, at least for tracking
+    std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
 
     /// @brief Full name of the application (game)
     S16 m_applicationName;
@@ -96,6 +103,8 @@ namespace psge
     /// @brief Is the renderer fully initialized?
     B8 m_initialized;
 
+    U64 m_frameNumber;
+
   private:
 
     //VulkanRenderer();
@@ -106,6 +115,13 @@ namespace psge
      * @return B8 true if successfully created
      */
     B8 CreateInstance();
+
+    /**
+     * @brief Create a vulkan debugger logging
+     * 
+     * @return B8 true if debugger successfully created
+     */
+    B8 CreateDebugger();
 
     /**
      * @brief Get the required Vulkan Extensions, including validation layers

@@ -80,7 +80,7 @@ std::unique_ptr<IPlugin> PluginManager::GetPlugin(S32 _pluginInterfaceName)
 
   for(auto& pair : m_availablePlugins){
     if(_pluginInterfaceName.Equals(pair.second.pluginInterfaceName)){
-      LINFO("Getting a plugin!");
+      LINFO("Getting a plugin with interface: %s", _pluginInterfaceName.Data());
       return pair.second.createFunction();
     }
   }

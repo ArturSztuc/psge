@@ -28,6 +28,7 @@ std::vector<const C8*> psge::VulkanRenderer::GetRequiredSurfaceExtensions()
   ret.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
 #elif defined(PLATFORM_LINUX)
   // Platform-specific extensions for Linux
+  // XLIB? Or Wayland?
   ret.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(PLATFORM_MAC)
   // Platform-specific extensions for MacOS
