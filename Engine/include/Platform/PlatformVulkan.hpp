@@ -2,6 +2,7 @@
 
 #include "defines.h"
 #include "Graphics/VulkanRenderer.hpp"
+#include "Graphics/VulkanDevice.hpp"
 
 #ifdef PLARFORM_WINDOWS
 #include <vulkan/vulkan_win32.h>
@@ -52,6 +53,22 @@ std::vector<const C8*> psge::VulkanRenderer::GetRequiredWindowExtensions()
   ret = std::vector<const C8*>(extensions, extensions+extensionCount);
 #else
 #error "Window api currently not supported"
+#endif
+
+  return ret;
+}
+
+VkSurfaceKHR psge::VulkanDevice::CreateSurface(Window* _window,
+                                               VkInstance& _instance)
+{
+  VkSurfaceKHR ret;
+#ifdef PLATFORM_WINDOW_GLFW
+  if(glfwCreateWindowSurface(_instance, _window->GetWindow(), nullptr, &ret) != VK_SUCCESS){
+    throw std::runtime_error("Failed to create a window surface");
+  }
+  LDEBUG("Created a vulkan surface");
+#else
+#error "Window API & surfaces currently now supported"
 #endif
 
   return ret;

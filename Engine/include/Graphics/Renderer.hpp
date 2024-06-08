@@ -7,6 +7,8 @@
 #pragma once
 
 #include "defines.h"
+#include "Core/Window/Window.hpp"
+
 
 namespace psge
 {
@@ -44,7 +46,8 @@ private:
 
 public:
   B8 Render(F64 _deltaTime);
-  virtual B8 Initialize(RendererConfig& _config) = 0;
+  virtual ~Renderer(){};
+  virtual B8 Initialize(RendererConfig& _config, Window* _window) = 0;
   virtual B8 Resize() = 0;
   virtual B8 BeginFrame(F64 _deltaTime) = 0;
   virtual B8 EndFrame(F64 _deltaTime) = 0;

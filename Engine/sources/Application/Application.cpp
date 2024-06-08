@@ -37,6 +37,9 @@ void Application::CreateWindow()
 
 Application::~Application()
 {
+  LINFO("Destroying the application's renderer");
+  m_renderer.reset();
+
   LINFO("Application deconstructed gracefully");
   LOGS_SAVE();
 };
@@ -100,7 +103,7 @@ void Application::InitializeRenderer()
   config.m_applicationName = (m_config->Get<std::string>("game_title")).data();
 
   m_renderer = std::make_unique<VulkanRenderer>();
-  m_renderer->Initialize(config);
+  m_renderer->Initialize(config, m_window);
 }
 
 void Application::LoadPlugins()

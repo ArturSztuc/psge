@@ -65,7 +65,7 @@ namespace psge
     VkDebugUtilsMessengerEXT m_debugMessenger;
 
     /// Device object
-    // std::unique_ptr<VulkanDevice> m_device;
+    std::unique_ptr<VulkanDevice> m_device;
 
     VkCommandPool m_commandPool;
 
@@ -95,7 +95,7 @@ namespace psge
     B8 m_usingValidationLayers;
 
     /// @brief Shared pointer to the platform's window object
-    std::shared_ptr<Window> m_window;
+    Window* m_window;
 
     /// @brief Shared pointer to the platform's accelerator device (GPU)
     //std::shared_ptr<VulkanDevice> m_device;
@@ -173,6 +173,8 @@ namespace psge
                        "No license?",
                        m_v);
 
+    virtual ~VulkanRenderer() override;
+
     NOCOPY(VulkanRenderer);
 
     void OnUserCreate();
@@ -181,7 +183,7 @@ namespace psge
 
     S32 GetPluginInterfaceName();
 
-    B8 Initialize(RendererConfig& _config);
+    B8 Initialize(RendererConfig& _config, Window* _window);
 
     B8 Resize();
 

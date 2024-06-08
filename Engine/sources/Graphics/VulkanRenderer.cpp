@@ -5,22 +5,59 @@ namespace psge
 {
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-      VkDebugUtilsMessageTypeFlagsEXT messageType,
-      const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-      void *pUserData)
+      VkDebugUtilsMessageSeverityFlagBitsEXT _messageSeverity,
+      VkDebugUtilsMessageTypeFlagsEXT _messageType,
+      const VkDebugUtilsMessengerCallbackDataEXT *_pCallbackData,
+      void *_pUserData)
 {
-  LDEBUG("Vulkan validation layer message: %s", pCallbackData->pMessage);
+  switch (_messageSeverity) {
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+      LERROR("Vulkan validation layer error: %s", _pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+      LWARN("Vulkan validation layer warning: %s", _pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+      LINFO("Vulkan validation layer info: %s", _pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      LTRACE("Vulkan validation layer trace: %s", _pCallbackData->pMessage);
+      break;
+    default:
+      LDEBUG("Unknown Vulkan validation layer message type: %s", _pCallbackData->pMessage);
+      break;
+  }
+
   return VK_FALSE;
+}
+
+VulkanRenderer::~VulkanRenderer()
+{
+  LINFO("Calling the vulkan renderer deconstructor");
+  Destroy();
 }
 
 void VulkanRenderer::OnUserCreate()
 {
   m_initialized = false;
 }
+
 void VulkanRenderer::Destroy()
 {
+  LDEBUG("Shutting down Vulkan device");
+  m_device.reset();
+
+  LDEBUG("Shutting down Vulkan debugger");
+  if (m_debugMessenger) {
+    PFN_vkDestroyDebugUtilsMessengerEXT func = 
+      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT");
+      func(m_instance, m_debugMessenger, m_memoryAllocator.get());
+  }
+
+  LDEBUG("Shutting down Vulkan instance");
+  vkDestroyInstance(m_instance, m_memoryAllocator.get());
 }
+
 S32 VulkanRenderer::GetPluginInterfaceName()
 {
   return "RendererPluginInterface";
@@ -43,8 +80,11 @@ B8 VulkanRenderer::EndFrame(F64 _deltaTime)
   return true;
 }
 
-B8 VulkanRenderer::Initialize(RendererConfig& _config)
+B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 {
+  /// @todo Make shared throughout application!
+  m_window = _window;
+
   // Set the application and engine/renderer names
   m_applicationName = _config.m_applicationName;
   m_engineName      = _config.m_rendererName;
@@ -60,16 +100,25 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config)
     m_engineVersion[v]      = _config.m_rendererVersion[v];
   }
 
-  if (!CreateInstance())
-    LERROR("Vulkan Instance failed to initialize!");
+  if (!CreateInstance()) {
+    LFATAL("Vulkan Instance failed to initialize!");
+    return false;
+  }
 
   if (m_usingValidationLayers) {
-    if (!CreateDebugger())
-      LERROR("Vulkan debugging logger failed to initialize!");
+    if (!CreateDebugger()) {
+      LFATAL("Vulkan debugging logger failed to initialize!");
+      return false;
+    }
   }
 
   // Get the device
-  //m_device = GetDevice();
+  /// @todo: put this into a function...
+  m_device = std::make_unique<VulkanDevice>(m_window, m_instance, m_memoryAllocator);
+  if (!m_device) {
+    LFATAL("Failed to create vulkan device!");
+    return false;
+  }
 
   // Now the rendering engine is initialized
   m_initialized = true;
@@ -118,28 +167,33 @@ B8 VulkanRenderer::CreateDebugger()
 {
   LDEBUG("Creating a vulkan debugger");
 
+  // Log severity, info & verbose are too verbose, warnings sometimes mean
+  // application-crashing errors (but not always), errors always do.
   U32 logSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT; // |
                                                                      // VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
                                                                      // VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+  // Create the debugging info object
   VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
   debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
   debugInfo.messageSeverity = logSeverity;
   debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-  
+
+  // Our custom callback function for message printing
   debugInfo.pfnUserCallback = DebugCallback;
   debugInfo.pUserData = nullptr;
 
+  // Get the pointer to the vulkan's debug messenger
   PFN_vkCreateDebugUtilsMessengerEXT func = 
     (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT");
-
   if(!func) {
     LDEBUG("Failed to create debug messenger!");
     return false;
   }
-  
+
+  // Load the vulkan messenger with our implementation & config.
   VK_CHECK(func(m_instance, &debugInfo, m_memoryAllocator.get(), &m_debugMessenger));
   LDEBUG("Vulkan debugger created!");
 
