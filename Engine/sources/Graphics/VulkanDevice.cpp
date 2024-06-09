@@ -2,7 +2,6 @@
 
 namespace psge
 {
-
 VulkanDevice::VulkanDevice(Window* _window,
                            VkInstance& _instance,
                            bool _validationEnabled,
@@ -54,13 +53,13 @@ VulkanDevice::~VulkanDevice()
 
 B8 VulkanDevice::CreateLogicalDevice()
 {
-  QueueFamilyIndices indices = FindQueueFamilies(m_physicalDevice);
+  m_queueIndices = FindQueueFamilies(m_physicalDevice); 
 
   /// @todo implement separate queues for transfer and compute.
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  //std::vector<U32> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value(), indices.transferFamily.value()};
-  std::vector<U32> uniqueQueueFamilies = {indices.graphicsFamily.value()}; // graphics queue should support everything
-  LINFO("Queues: graphics: %i, present: %i, compute: %i, transfer: %i", indices.graphicsFamily.value(), indices.presentFamily.value(), indices.computeFamily.value(), indices.transferFamily.value());
+  //std::vector<U32> uniqueQueueFamilies = {m_queueIndices.graphicsFamily.value(), m_queueIndieces.presentFamily.value(), m_queueIndices.transferFamily.value()};
+  std::vector<U32> uniqueQueueFamilies = {m_queueIndices.graphicsFamily.value()}; // graphics queue should support everything
+  LINFO("Queues: graphics: %i, present: %i, compute: %i, transfer: %i", m_queueIndices.graphicsFamily.value(), m_queueIndices.presentFamily.value(), m_queueIndices.computeFamily.value(), m_queueIndices.transferFamily.value());
 
   F32 queuePriority = 1.0f;
   for (U32 queueFamily : uniqueQueueFamilies) {
@@ -69,7 +68,7 @@ B8 VulkanDevice::CreateLogicalDevice()
     queueCreateInfo.queueFamilyIndex  = queueFamily;
     queueCreateInfo.queueCount        = 1;
     queueCreateInfo.pQueuePriorities  = &queuePriority;
-    if (queueFamily == indices.graphicsFamily) {
+    if (queueFamily == m_queueIndices.graphicsFamily) {
       queueCreateInfo.queueCount = 2;
       std::vector<F32> priorities = {queuePriority, queuePriority};
       queueCreateInfo.pQueuePriorities = priorities.data();
@@ -102,10 +101,10 @@ B8 VulkanDevice::CreateLogicalDevice()
   LOG_SAVE();
   VK_CHECK(vkCreateDevice(m_physicalDevice, &deviceInfo, m_memoryAllocator.get(), &m_logicalDevice));
 
-  vkGetDeviceQueue(m_logicalDevice, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
-  vkGetDeviceQueue(m_logicalDevice, indices.presentFamily.value(),  0, &m_presentQueue);
-  //vkGetDeviceQueue(m_logicalDevice, indices.presentFamily.value(),  0, &m_computeQueue);
-  vkGetDeviceQueue(m_logicalDevice, indices.transferFamily.value(), 0, &m_transferQueue);
+  vkGetDeviceQueue(m_logicalDevice, m_queueIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
+  vkGetDeviceQueue(m_logicalDevice, m_queueIndices.presentFamily.value(),  0, &m_presentQueue);
+  //vkGetDeviceQueue(m_logicalDevice, m_queueIndices.presentFamily.value(),  0, &m_computeQueue);
+  vkGetDeviceQueue(m_logicalDevice, m_queueIndices.transferFamily.value(), 0, &m_transferQueue);
 
   LDEBUG("Created a vulkan logical device!");
   return true;
@@ -141,9 +140,7 @@ B8 VulkanDevice::PickPhysicalDevice()
     return false;
   }
 
-  vkGetPhysicalDeviceProperties(m_physicalDevice, &m_deviceProperties);
-  vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_deviceMemoryProperties);
-  vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_deviceFeatures);
+  FindDeviceProperties();
 
   LDEBUG("Physical device picked : %s", m_deviceProperties.deviceName);
   LDEBUG(" * GPU type            : %s", DeviceTypeToString(m_deviceProperties.deviceType));
@@ -163,8 +160,82 @@ B8 VulkanDevice::PickPhysicalDevice()
     }
   }
 
-
   return true;
+}
+
+void VulkanDevice::FindDeviceProperties()
+{
+  // Get the device properties
+  vkGetPhysicalDeviceProperties(m_physicalDevice, &m_deviceProperties);
+
+  // Get the device memory properties
+  vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_deviceMemoryProperties);
+
+  // Get the device features
+  vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_deviceFeatures);
+
+  // Get the device supported capabilities for surface
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_surfaceSupportedCapabilities);
+
+  // Get the device supported formats for surface
+  U32 formatCount;
+  vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr);
+  if (formatCount) {
+    m_surfaceSupportedFormats.resize(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, m_surfaceSupportedFormats.data());
+  }
+
+  // Pick the preferred surface format
+  /// @todo the format & colorspace should be configurable
+  B8 foundFormat = false;
+  for (const VkSurfaceFormatKHR& surfaceFormat : m_surfaceSupportedFormats) {
+    if (surfaceFormat.format      == VK_FORMAT_B8G8R8A8_UNORM &&
+        surfaceFormat.colorSpace  == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      m_surfaceFormat = surfaceFormat;
+      foundFormat = true;
+      break;
+    }
+  }
+  if (!foundFormat) {
+    LWARN("Did not find the preferred vulkan surface format, picking first available!");
+    m_surfaceFormat = m_surfaceSupportedFormats[0];
+  }
+
+  // Get the device supported presentation modes
+  U32 modeCount;
+  vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &modeCount, nullptr);
+  if (modeCount) {
+    m_presentSupportedModes.resize(modeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &modeCount, m_presentSupportedModes.data());
+  }
+
+  // Pick the preferred surface presentation mode
+  m_presentMode = VK_PRESENT_MODE_FIFO_KHR;
+  // The highest preference is for the mailbox mode
+  /// @todo Perhaps we want this to be a configurable!
+  for (VkPresentModeKHR presentMode : m_presentSupportedModes) {
+    if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      LINFO("We found preferred present mode: mailbox");
+      m_presentMode = presentMode;
+      break;
+    }
+  }
+}
+
+VkPresentModeKHR VulkanDevice::PickPresentMode()
+{
+
+  // The second highest is for mailbox
+  /// @todo re-think if that's definitely correct
+  for (VkPresentModeKHR presentMode : m_presentSupportedModes) {
+    if (presentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+      LINFO("Picked present mode: mailbox");
+      return presentMode;
+    }
+  }
+
+  // Fifo has to be supported by vulkan-enabled devices.
+  return VK_PRESENT_MODE_FIFO_KHR;
 }
 
 QueueFamilyIndices VulkanDevice::FindQueueFamilies(const VkPhysicalDevice& _device)

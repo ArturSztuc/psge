@@ -3,37 +3,117 @@
 namespace psge
 {
 
-VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device, VkExtent2D _extent)
+VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
+                                 VkExtent2D _extent,
+                                 U8 _maxFramesInFlight)
  : m_devicePtr(_device), 
-   m_extent(_extent)
+   m_extent(_extent),
+   m_maxFramesInFlight(_maxFramesInFlight)
 {
+
+// Pick the extent
+VkExtent2D extent = m_extent;
+VkSurfaceCapabilitiesKHR surfaceCapabilities = m_devicePtr->GetSurfaceCapabilities();
+if(surfaceCapabilities.currentExtent.width != std::numeric_limits<U32>::max()){
+  extent = surfaceCapabilities.currentExtent;
+} 
+VkExtent2D minExtent = surfaceCapabilities.minImageExtent;
+VkExtent2D maxExtent = surfaceCapabilities.maxImageExtent;
+extent.width = std::clamp(extent.width, minExtent.width, maxExtent.width);
+extent.height = std::clamp(extent.height, minExtent.height, maxExtent.height);
+
+// Pick the image count
+U32 imageCount = surfaceCapabilities.minImageCount + 1;
+if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount) {
+  imageCount = surfaceCapabilities.maxImageCount;
+}
+
+// Create swapchain info!
+VkSwapchainCreateInfoKHR swapchainInfo = {};
+swapchainInfo.sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+swapchainInfo.surface = m_devicePtr->GetSurface();
+swapchainInfo.imageFormat = m_devicePtr->GetPreferredSurfaceFormat().format;
+swapchainInfo.imageColorSpace = m_devicePtr->GetPreferredSurfaceFormat().colorSpace;
+swapchainInfo.imageExtent = extent;
+swapchainInfo.imageArrayLayers = 1;
+swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+swapchainInfo.minImageCount = imageCount;
+// Setup queue family indices
+QueueFamilyIndices indices = m_devicePtr->GetQueueFamilyIndices();
+if (indices.graphicsFamily.value() != indices.presentFamily.value()) {
+  U32 queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+  swapchainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+  swapchainInfo.queueFamilyIndexCount = 2;
+  swapchainInfo.pQueueFamilyIndices = queueFamilyIndices;
+}
+else {
+  swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  swapchainInfo.queueFamilyIndexCount = 0;
+  swapchainInfo.pQueueFamilyIndices = 0;
+}
+swapchainInfo.preTransform = surfaceCapabilities.currentTransform;
+swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+swapchainInfo.presentMode = m_devicePtr->GetPreferredPresentMode();
+swapchainInfo.clipped = VK_TRUE;
+
+/// @todo move all of this into "recreate", and set oldSwapchain to old one if recreating? For now explicitly destroying.
+swapchainInfo.oldSwapchain = 0;
+
+// Finally, create the swapchain...
+VK_CHECK(vkCreateSwapchainKHR(*m_devicePtr->GetDevice(), &swapchainInfo, nullptr, &m_swapchain));
 
 LDEBUG("Created a new swapchain");
 }
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+  // Destroy the swapchain
+  vkDestroySwapchainKHR(*m_devicePtr->GetDevice(), m_swapchain, nullptr);
 
-LDEBUG("Destroyed a swapchain");
+  LDEBUG("Destroyed a swapchain");
 }
 
 void VulkanSwapchain::RecreateSwapchain()
 {
 }
 
-void VulkanSwapchain::PresentSwapchain()
+B8 VulkanSwapchain::Present(U32 _presentImageIndex,
+                            VkQueue& _presentQueue)
 {
+  // Return image to the swapchain for presenting
+  VkPresentInfoKHR presentInfo = {};
+  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+  presentInfo.waitSemaphoreCount  = 1;
+  presentInfo.pWaitSemaphores     = &m_imageFinishedSemaphores[m_currentFrame];
+  presentInfo.swapchainCount      = 1;
+  presentInfo.pSwapchains         = &m_swapchain;
+  presentInfo.pImageIndices       = &_presentImageIndex;
+  presentInfo.pResults            = 0;
+
+  // Present the image
+  VkResult result = vkQueuePresentKHR(_presentQueue, &presentInfo);
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    // The swapchain is out of date, suboptimal, framebuffer was resized etc,
+    // recreate swapchain
+    RecreateSwapchain();
+    return false;
+  }
+  else if (result != VK_SUCCESS) {
+    LFATAL("Vulkan failed to present swapchain image!");
+    return false;
+  }
+
+  return true;
 }
 
-
-
-B8 VulkanSwapchain::AcquireNextImage(U32* _imageIndex, const U64& _timeoutns)
+B8 VulkanSwapchain::AcquireNextImage(U32* _imageIndex,
+                                     const U64& _timeoutns)
 {
   /// @todo: fences!
   //vkWaitForFences(m_devicePtr->GetDevice(), 1, )
 
   VkResult result = vkAcquireNextImageKHR(*(m_devicePtr->GetDevice()), 
-                                          m_swapchainHandle,
+                                          m_swapchain,
                                           _timeoutns,
                                           m_imageAvailableSemaphores[m_currentImage],
                                           VK_NULL_HANDLE,

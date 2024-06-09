@@ -53,15 +53,51 @@ namespace psge
     ~VulkanDevice();
 
     VkDevice* GetDevice() {return &m_logicalDevice;}
+    VkSurfaceFormatKHR GetPreferredSurfaceFormat() {return m_surfaceFormat;}
+    VkPresentModeKHR GetPreferredPresentMode() {return m_presentMode;}
+    VkSurfaceKHR GetSurface() { return m_surface;}
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() {return m_surfaceSupportedCapabilities;}
+    QueueFamilyIndices GetQueueFamilyIndices() {return m_queueIndices;}
 
   // private member functions
   private:
+    /**
+     * @brief Create a vulkan surface object to renderer frames upon
+     * 
+     * @param _window pointer to our window instance
+     * @param _instance reference to the vulkan instance
+     * @return VkSurfaceKHR Returns a vulkan surface to fraw upon
+     */
     VkSurfaceKHR CreateSurface(Window* _window, VkInstance& _instance);
 
+    /**
+     * @brief Picks a physical device from all available ones
+     * 
+     * @return B8 was the device picked?
+     */
     B8 PickPhysicalDevice();
+
+    /**
+     * @brief Scores a physical device based on it's features & properties
+     * 
+     * @param _device a physical device to score
+     * @return U32 unsigned integer with the score
+     */
     U32 ScoreDevice(const VkPhysicalDevice& _device);
 
+    /**
+     * @brief Create a Logical Device that we interact with
+     * 
+     * @return B8  was the creation successfull?
+     */
     B8 CreateLogicalDevice();
+    
+    /**
+     * @brief Finds and loads all the physical device properties/features etc
+     */
+    void FindDeviceProperties();
+
+    VkPresentModeKHR PickPresentMode();
 
     /**
      * @brief Finds vulkan queue families
@@ -71,6 +107,12 @@ namespace psge
      */
     QueueFamilyIndices FindQueueFamilies(const VkPhysicalDevice& _device);
 
+    /**
+     * @brief Converts physical device type to string
+     * 
+     * @param _type VkPhysicalDeviceType physical device type
+     * @return S16 String with device type
+     */
     S16 DeviceTypeToString(const VkPhysicalDeviceType& _type)
     {
       S16 ret;
@@ -105,6 +147,21 @@ namespace psge
 
     /// @brief Surface for Vulkan to draw upon
     VkSurfaceKHR m_surface;
+  
+    /// @brief Surface capabilites supported by the device
+    VkSurfaceCapabilitiesKHR m_surfaceSupportedCapabilities;
+
+    /// @brief Surface formats supported by the device
+    std::vector<VkSurfaceFormatKHR> m_surfaceSupportedFormats;
+
+    /// @brief A preferred surface format
+    VkSurfaceFormatKHR m_surfaceFormat;
+
+    /// @brief Present modes supported by the device
+    std::vector<VkPresentModeKHR> m_presentSupportedModes;
+
+    /// @brief A preferred surface present mode
+    VkPresentModeKHR m_presentMode;
 
     /// @brief Physical vulkan device
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
@@ -133,11 +190,18 @@ namespace psge
     /// @brief Transfer queue
     VkQueue m_transferQueue;
 
+    /// @brief All the queue family indices
+    QueueFamilyIndices m_queueIndices;
+
+
+
     /// @brief List of required device extensions
     /// @todo Hard-coded!
     const std::vector<const C8*>  m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     const std::vector<const C8*>  m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
+    /// @brief Are the validation layers enabled?
+    /// @todo: Make this a precompiler!
     bool m_validationLayersEnabled;
   };
 };
