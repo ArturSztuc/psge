@@ -12,8 +12,13 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
    m_memoryAllocator(_memoryAllocator),
    m_maxFramesInFlight(_maxFramesInFlight)
 {
+  // Create the swapchain
   CreateSwapchain();
+
+  // Create the image views
   CreateImageViews();
+
+  // Create the depth images
   CreateDepthImages();
 
   LDEBUG("Created a new swapchain");
@@ -21,14 +26,14 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
 
 VulkanSwapchain::~VulkanSwapchain()
 {
-  // Destroy the images & image views
+  // Destroy the image views
   for (U32 i = 0; i < m_images.size(); ++i){
     vkDestroyImageView(*m_devicePtr->GetDevice(), m_views[i], m_memoryAllocator.get());
-    //vkDestroyImage(*m_devicePtr->GetDevice(), m_images[i], m_memoryAllocator.get());
   }
   m_views.clear();
   m_images.clear();
 
+  // Destroy the depth images, image views and device memory for those
   for (U32 i = 0; i < m_depthImages.size(); ++i) {
     vkDestroyImageView(*m_devicePtr->GetDevice(), m_depthImageViews[i], m_memoryAllocator.get());
     vkDestroyImage(*m_devicePtr->GetDevice(), m_depthImages[i], m_memoryAllocator.get());
@@ -107,6 +112,7 @@ void VulkanSwapchain::CreateSwapchain()
 
 void VulkanSwapchain::CreateImageViews()
 {
+  // Iterate over the images & create a view for each
   m_views.resize(m_images.size());
   for (U32 i = 0; i < m_images.size(); ++i){
     VkImageViewCreateInfo viewInfo = {};
