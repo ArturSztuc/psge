@@ -1,42 +1,15 @@
 # PSGE : Pint-Sized Game Engine
 
-The current folder structure: 
-
-```
-psge
-├── Engine
-│   ├── Application
-│   ├── Core
-│   │   ├── Config
-│   │   ├── DataStructures
-│   │   ├── EntityComponentSystem
-│   │   ├── Event
-│   │   ├── Inputs
-│   │   ├── Logging
-│   │   ├── Memory
-│   │   ├── String
-│   │   ├── Timing
-│   │   └── Window
-│   ├── Graphics
-│   └── Platform
-├── Exterals
-│   ├── glfw
-│   └── json
-├── Game
-│   └── Sources
-└── UnitTests
-    └── Core
-```
-
-`Engine` is compiled as a library that contains an entry point `main`.\
+`Engine` is compiled as a library that contains the entry point `main`.\
 `Externals` contains all the external dependencies (other than `Vulkan`).\
 `Game` is a sandbox that needs to have an object derived from the `Engine`'s
 `Application` and have a function `Application* CreateApplication()` that links
 to the entry point.\
+`Plugins` will contain various plugins and plugin examples for the rendering
+engines, audio engines, physics engines etc.\
 The entry point is inside of the `Engine/Application` folder.\
 `UnitTests` contains unit tests written with a help of GoogleTest framework.\
-All the objects inside of the `Engine` should to have their own unit tests
-there.
+All the objects inside of the `Engine` should to have their own unit tests.
 
 ## Building
 The build should work under both Linux and Windows. It should be possible to build with VSCode, provided you have the correct CMake generators and compiler linked. For a simple build:
@@ -60,11 +33,11 @@ Dependencies that can be installed, but otherwise the project installs them:
 * nlohmann/json.hpp
 * GTest
 
-
 This will only increase as we add glm, shaders.
 
 ## Running
-From now from `build` folder.
+For now `Sandbox` is installed in the build folder, but can be run from anywhere.
+There is no editor as of yet.
 In the future the build will be with an `install` option that will distribute
 the libraries/assets/executables in the appropriate system folders.
 

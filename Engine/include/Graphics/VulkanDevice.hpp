@@ -58,6 +58,9 @@ namespace psge
     VkSurfaceKHR GetSurface() { return m_surface;}
     VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() {return m_surfaceSupportedCapabilities;}
     QueueFamilyIndices GetQueueFamilyIndices() {return m_queueIndices;}
+    VkFormat GetDepthFormat() {return m_depthFormat;}
+
+    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
 
   // private member functions
   private:
@@ -162,6 +165,9 @@ namespace psge
 
     /// @brief A preferred surface present mode
     VkPresentModeKHR m_presentMode;
+
+    /// @brief A preferred depth buffer format
+    VkFormat m_depthFormat;
 
     /// @brief Physical vulkan device
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;

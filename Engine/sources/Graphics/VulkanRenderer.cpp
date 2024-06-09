@@ -128,7 +128,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   VkExtent2D vextent;
   vextent.width = wextent.width;
   vextent.height= wextent.height;
-  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), vextent);
+  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), vextent, m_memoryAllocator);
 
   // Now the rendering engine is initialized
   m_initialized = true;

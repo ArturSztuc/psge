@@ -208,7 +208,6 @@ void VulkanDevice::FindDeviceProperties()
     m_presentSupportedModes.resize(modeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &modeCount, m_presentSupportedModes.data());
   }
-
   // Pick the preferred surface presentation mode
   m_presentMode = VK_PRESENT_MODE_FIFO_KHR;
   // The highest preference is for the mailbox mode
@@ -220,6 +219,49 @@ void VulkanDevice::FindDeviceProperties()
       break;
     }
   }
+
+  // Get the depth format. 
+  /// @todo Abstract into a separete function if going to be reused.
+  std::vector<VkFormat> depthFormatCandidates = {VK_FORMAT_D32_SFLOAT,
+                                                 VK_FORMAT_D32_SFLOAT_S8_UINT,
+                                                 VK_FORMAT_D24_UNORM_S8_UINT};
+  VkImageTiling desiredTiling = VK_IMAGE_TILING_OPTIMAL;
+  VkFormatFeatureFlags desierdDepthFlags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+  B8 depthFormatFound = false;
+  for (VkFormat format : depthFormatCandidates) {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &props);
+    if (desiredTiling == VK_IMAGE_TILING_LINEAR && 
+        (props.linearTilingFeatures & desierdDepthFlags) == desierdDepthFlags) {
+      m_depthFormat = format;
+      depthFormatFound = true;
+      break;
+    } else if (desiredTiling == VK_IMAGE_TILING_OPTIMAL &&
+                (props.optimalTilingFeatures & desierdDepthFlags) == desierdDepthFlags) {
+      m_depthFormat = format;
+      depthFormatFound = true;
+      break;
+    }
+  }
+  if (!depthFormatFound)
+    LFATAL("Failed to find a supported device format");
+}
+
+U32 VulkanDevice::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties)
+{
+  VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
+
+  for (U32 i = 0; i < memProperties.memoryTypeCount; ++i) {
+    if ((typeFilter & (1 << i)) &&
+        (memProperties.memoryTypes[i].propertyFlags & _properties) == _properties) {
+      return i;
+    }
+  }
+
+  LFATAL("Failed to find a suitable memory type!");
+  return 0;
 }
 
 VkPresentModeKHR VulkanDevice::PickPresentMode()

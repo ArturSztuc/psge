@@ -18,10 +18,14 @@ class VulkanSwapchain
 public:
   VulkanSwapchain(VulkanDevice* _device,
                   VkExtent2D _extent,
+                  std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
                   U8 _maxFramesInFlight = 2);
   
   ~VulkanSwapchain();
 
+  void CreateSwapchain();
+  void CreateImageViews();
+  void CreateDepthImages();
   void RecreateSwapchain();
 
   B8 Present(U32 _presentImageIndex,
@@ -41,10 +45,13 @@ private:
   VkSwapchainKHR m_swapchain;
   VkSwapchainKHR m_oldSwapchain;
   U32 m_imageCount;
-  U16 m_currentImage;
-  U32 m_currentFrame;
-  VkImage* m_images;
-  VkImageView* m_views;
+  U32 m_currentImageIndex;
+  U32 m_currentFrameIndex;
+  std::vector<VkImage> m_images;
+  std::vector<VkImage> m_depthImages;
+  std::vector<VkImageView> m_views;
+  std::vector<VkImageView> m_depthImageViews;
+  std::vector<VkDeviceMemory> m_depthImageMem;
 
   std::vector<VkFence> m_fences;
 
@@ -60,6 +67,9 @@ private:
 
   std::vector<VkSemaphore> m_imageAvailableSemaphores;
   std::vector<VkSemaphore> m_imageFinishedSemaphores;
+
+  std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
+  
 };
   
   
