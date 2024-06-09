@@ -26,6 +26,7 @@
 #include "Graphics/Renderer.hpp"
 #include "Graphics/RendererPluginInterface.hpp"
 #include "Graphics/VulkanDevice.hpp"
+#include "Graphics/VulkanSwapchain.hpp"
 
 namespace psge
 {
@@ -45,58 +46,37 @@ namespace psge
    */
   class VulkanRenderer : public Renderer, public RendererPluginInterface
   {
+  // public member functions
+  public:
+    U8 m_v[3] = {0, 0, 0};
+
+    PLUGIN_CONSTRUCTOR(VulkanRenderer,
+                       "VulkanRenderer",
+                       "Vulkan renderer plugin",
+                       "Pint-sized game engine (PSGE)",
+                       "No license?",
+                       m_v);
+
+    virtual ~VulkanRenderer() override;
+
+    NOCOPY(VulkanRenderer);
+
+    void OnUserCreate();
+
+    void Destroy();
+
+    S32 GetPluginInterfaceName();
+
+    B8 Initialize(RendererConfig& _config, Window* _window);
+
+    B8 Resize();
+
+    B8 BeginFrame(F64 _deltaTime);
+
+    B8 EndFrame(F64 _deltaTime);
+
+  // private member functions
   private:
-    /// @brief Vulkan instance
-    VkInstance m_instance;
-
-    /// @brief Vulkan debugging messanger
-    VkDebugUtilsMessengerEXT m_debugMessenger;
-
-    /// Device object
-    std::unique_ptr<VulkanDevice> m_device;
-
-    VkCommandPool m_commandPool;
-
-    /// Custom memory allocator
-    /// @todo: Create custom memory allocation, at least for tracking
-    std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
-
-    /// @brief Full name of the application (game)
-    S16 m_applicationName;
-
-    /**
-     * @brief Full version of the application (game)
-     * 
-     * This will expand in the future, where the rendering engine's version
-     * will be different from the full game engine fersion (e.g. if the
-     * rendering engine is a plugin)
-     */
-    I8 m_applicationVersion[3];
-
-    /// @brief Name of the engine
-    S16 m_engineName;
-
-    /// @brief Version of the renderer
-    I8 m_engineVersion[3];
-
-    /// @brief Is the Vulkan debugging on?
-    B8 m_usingValidationLayers;
-
-    /// @brief Shared pointer to the platform's window object
-    Window* m_window;
-
-    /// @brief Shared pointer to the platform's accelerator device (GPU)
-    //std::shared_ptr<VulkanDevice> m_device;
-
-    /// @brief Is the renderer fully initialized?
-    B8 m_initialized;
-
-    U64 m_frameNumber;
-
-  private:
-
-    //VulkanRenderer();
-
     /**
      * @brief Create a VkInstance
      * 
@@ -149,35 +129,55 @@ namespace psge
      */
     std::vector<const C8*> GetRequiredValidationLayers();
 
-    //std::shared_ptr<Device> GetDevice();
+  // private member data
+  private:
+    /// @brief Vulkan instance
+    VkInstance m_instance;
 
-  public:
-    U8 m_v[3] = {0, 0, 0};
+    /// @brief Vulkan debugging messanger
+    VkDebugUtilsMessengerEXT m_debugMessenger;
 
-    PLUGIN_CONSTRUCTOR(VulkanRenderer,
-                       "VulkanRenderer",
-                       "Vulkan renderer plugin",
-                       "Pint-sized game engine (PSGE)",
-                       "No license?",
-                       m_v);
+    /// @brief Unique pointer to the platform's accelerator device (GPU)
+    std::unique_ptr<VulkanDevice> m_device;
 
-    virtual ~VulkanRenderer() override;
+    /// @brief Unique pointer to the image swapchain
+    std::unique_ptr<VulkanSwapchain> m_swapchain;
 
-    NOCOPY(VulkanRenderer);
+    VkCommandPool m_commandPool;
 
-    void OnUserCreate();
+    /// Custom memory allocator
+    /// @todo: Create custom memory allocation, at least for tracking
+    std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
 
-    void Destroy();
+    /// @brief Full name of the application (game)
+    S16 m_applicationName;
 
-    S32 GetPluginInterfaceName();
+    /**
+     * @brief Full version of the application (game)
+     * 
+     * This will expand in the future, where the rendering engine's version
+     * will be different from the full game engine fersion (e.g. if the
+     * rendering engine is a plugin)
+     */
+    I8 m_applicationVersion[3];
 
-    B8 Initialize(RendererConfig& _config, Window* _window);
+    /// @brief Name of the engine
+    S16 m_engineName;
 
-    B8 Resize();
+    /// @brief Version of the renderer
+    I8 m_engineVersion[3];
 
-    B8 BeginFrame(F64 _deltaTime);
+    /// @brief Is the Vulkan debugging on?
+    B8 m_usingValidationLayers;
 
-    B8 EndFrame(F64 _deltaTime);
+    /// @brief Shared pointer to the platform's window object
+    Window* m_window;
+
+    /// @brief Is the renderer fully initialized?
+    B8 m_initialized;
+
+    U64 m_frameNumber;
+
 
   };
 

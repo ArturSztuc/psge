@@ -6,8 +6,8 @@
 #include "Graphics/RendererPluginInterface.hpp"
 
 //#ifdef PLATFORM_LINUX
-//#include "Graphics/RendererPluginInterface.hpp"
 #include "Graphics/VulkanRenderer.hpp"
 #include "Graphics/VulkanDevice.hpp"
+#include "Graphics/VulkanSwapchain.hpp"
 //typedef psge::VulkanRenderer Renderer;
 //#endif

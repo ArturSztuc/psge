@@ -6,7 +6,9 @@
 Window::Window(const std::string& _windowName,
                U32 _width,
                U32 _height)
-  : m_windowName(_windowName), m_width(_width), m_height(_height) 
+  : m_windowName(_windowName),
+    m_extent{_width, _height}
+   //m_width(_width), m_height(_height) 
 {
   glfwInit();
 
@@ -15,7 +17,7 @@ Window::Window(const std::string& _windowName,
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   // The last two are glfw monitoring and glfw window share
-  m_window = glfwCreateWindow(m_width, m_height, m_windowName.c_str(), nullptr, nullptr);
+  m_window = glfwCreateWindow(m_extent.width, m_extent.height, m_windowName.c_str(), nullptr, nullptr);
   glfwSetWindowUserPointer(m_window, this);
   glfwSetFramebufferSizeCallback(m_window, frameBufferResizedCallback);
 }
@@ -31,8 +33,10 @@ void Window::frameBufferResizedCallback(GLFWwindow* _window,
 {
   auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
   window->m_frameBufferResized = true;
-  window->m_width  = _width;
-  window->m_height = _height;
+  window->m_extent.width = _width;
+  window->m_extent.height = _height;
+  //window->m_width  = _width;
+  //window->m_height = _height;
 }
 
 B8 Window::ShouldClose()

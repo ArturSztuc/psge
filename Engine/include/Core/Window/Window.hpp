@@ -13,6 +13,12 @@
 
 #include "Platform/PlatformWindow.hpp"
 
+struct WindowExtent
+{
+  U32 width;
+  U32 height;
+};
+
 /**
  * @class Window
  * @brief Class that creates a window we can draw on with an API
@@ -21,29 +27,7 @@
  */
 class Window
 {
-private:
-  /// Window to draw on
-  /// @todo TODO: Abstract this to a platform layer...
-  PlatformWindow* m_window;
-
-  /// Window width
-  unsigned int m_width;
-
-  /// Window height
-  unsigned int m_height;
-
-  /// Was the frame recently resized?
-  B8 m_frameBufferResized = false;
-
-  /// Name of the window to print/draw on titlebar
-  std::string m_windowName;
-
-private:
-  /// Function callback to resize the window
-  static void frameBufferResizedCallback(PlatformWindow* _window,
-                                         int _width,
-                                         int _height);
-
+// public member functions
 public:
   /**
    * @brief Window constructor
@@ -73,4 +57,33 @@ public:
 
   /// Resets the window resized flag 
   void ResetWindowResizedFlag() {m_frameBufferResized=false;};
+
+  WindowExtent GetExtent() {return m_extent;};
+
+// private member functions
+private:
+  /// Function callback to resize the window
+  static void frameBufferResizedCallback(PlatformWindow* _window,
+                                         int _width,
+                                         int _height);
+
+// private memer data
+private:
+  /// Window to draw on
+  /// @todo TODO: Abstract this to a platform layer...
+  PlatformWindow* m_window;
+
+  WindowExtent m_extent;
+  ///// Window width
+  //unsigned int m_width;
+
+  ///// Window height
+  //unsigned int m_height;
+
+  /// Was the frame recently resized?
+  B8 m_frameBufferResized = false;
+
+  /// Name of the window to print/draw on titlebar
+  std::string m_windowName;
+
 };

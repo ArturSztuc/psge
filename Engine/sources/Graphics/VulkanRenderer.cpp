@@ -44,6 +44,9 @@ void VulkanRenderer::OnUserCreate()
 
 void VulkanRenderer::Destroy()
 {
+  LDEBUG("Shutting down Vulkan swapchain");
+  m_swapchain.reset();
+
   LDEBUG("Shutting down Vulkan device");
   m_device.reset();
 
@@ -119,6 +122,13 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     LFATAL("Failed to create vulkan device!");
     return false;
   }
+
+  // Create the swapchain
+  WindowExtent wextent = m_window->GetExtent();
+  VkExtent2D vextent;
+  vextent.width = wextent.width;
+  vextent.height= wextent.height;
+  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), vextent);
 
   // Now the rendering engine is initialized
   m_initialized = true;

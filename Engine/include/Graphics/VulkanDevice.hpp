@@ -52,6 +52,8 @@ namespace psge
                  std::shared_ptr<VkAllocationCallbacks> _memalloc);
     ~VulkanDevice();
 
+    VkDevice* GetDevice() {return &m_logicalDevice;}
+
   // private member functions
   private:
     VkSurfaceKHR CreateSurface(Window* _window, VkInstance& _instance);
