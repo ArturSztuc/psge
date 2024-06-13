@@ -1,3 +1,11 @@
+/**
+ * @file VulkanRenderPass.hpp
+ * @author Artur Sztuc (artursztuc@googlemail.com)
+ * @brief Renderpass class with the accompanying enums/structs
+ * @date 2024-06-13
+ * 
+ * @copyright Copyright (c) 2024
+ */
 #pragma once
 
 // std includes
@@ -13,6 +21,9 @@
 namespace psge
 {
 
+/**
+ * @brief Enumerator for the renderpass state
+ */
 enum class VulkanRenderPassState
 {
   kReady,
@@ -23,6 +34,9 @@ enum class VulkanRenderPassState
   kUnallocated
 };
 
+/**
+ * @brief Enumerator for the commandbuffer state
+ */
 enum class VulkanCommandBufferState
 {
   kReady,
@@ -33,6 +47,10 @@ enum class VulkanCommandBufferState
   kUnallocated
 };
 
+/**
+ * @struct VulkanCommandBuffer
+ * @brief 
+ */
 struct VulkanCommandBuffer
 {
   VkCommandBuffer commandBuffer;
@@ -55,10 +73,10 @@ public:
 
   void AddAttachment(VkAttachmentDescription _attachment);
 
-  void Begin(VkCommandBuffer* _commandBuffer,
-             VkFramebuffer _frameBuffer);
+  void Begin(VulkanCommandBuffer* _commandBuffer,
+             const VkFramebuffer& _frameBuffer);
 
-  void End(VkCommandBuffer* _commandBuffer);
+  void End(VulkanCommandBuffer* _commandBuffer);
 
 // private member functions
 private:
@@ -71,12 +89,20 @@ private:
   /// @brief Shared pointer to our custom memory allocator
   std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
 
+  /// @brief The vulkan render pass
   VkRenderPass m_renderPass;
+
+  /// @brief Current state of the render pass
   VulkanRenderPassState m_state;
 
+  // Render area
+  /// @brief Horizontal offset for render area
   F32 m_x;
+  /// @brief Vertical offset for render area
   F32 m_y;
+  /// @brief Width of the render area
   F32 m_w;
+  /// @brief Height of the render area
   F32 m_h;
 
   F32 m_r;

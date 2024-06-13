@@ -44,6 +44,9 @@ void VulkanRenderer::OnUserCreate()
 
 void VulkanRenderer::Destroy()
 {
+  LDEBUG("Shutting down Vulkan renderpass");
+  m_renderpass.reset();
+
   LDEBUG("Shutting down Vulkan swapchain");
   m_swapchain.reset();
 
@@ -128,7 +131,25 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   VkExtent2D vextent;
   vextent.width = wextent.width;
   vextent.height= wextent.height;
-  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), vextent, m_memoryAllocator);
+  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), 
+                                                  vextent,
+                                                  m_memoryAllocator);
+  if (!m_swapchain) {
+    LFATAL("Failed to create vulkan swapchain!");
+    return false;
+  }
+
+  m_renderpass = std::make_unique<VulkanRenderPass>(m_instance, 
+                                                    m_device.get(), 
+                                                    m_memoryAllocator,
+                                                    0, 0,
+                                                    vextent.width, vextent.height,
+                                                    0.0f, 0.0f, 0.2f, 1.0f,
+                                                    1.0f, 0.0f);
+  if (!m_renderpass) {
+    LFATAL("Failed to create vulkan renderpass!");
+    return false;
+  }
 
   // Now the rendering engine is initialized
   m_initialized = true;

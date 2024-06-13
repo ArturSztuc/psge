@@ -34,7 +34,7 @@ VulkanRenderPass::VulkanRenderPass(VkInstance& _instance,
   // Colour attachment reference
   VkAttachmentReference colourAttachmentReference;
   colourAttachmentReference.attachment = 0; // array index
-  colourAttachmentReference.layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+  colourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
   // Depth attachment
   VkAttachmentDescription depthAttachment;
@@ -95,7 +95,7 @@ VulkanRenderPass::VulkanRenderPass(VkInstance& _instance,
 
   // create the render pass!
   VK_CHECK(vkCreateRenderPass(*m_devicePtr->GetDevice(), &createInfo, m_memoryAllocator.get(), &m_renderPass));
-  LDEBUG("Render pass created with %i attachments, %i dependencies and %s subpasses!", attachments.size(), 1, 1);
+  LDEBUG("Render pass created with %d attachments, %d dependencies and %d subpasses!", attachments.size(), 1, 1);
 }
 
 VulkanRenderPass::~VulkanRenderPass()
@@ -106,9 +106,49 @@ VulkanRenderPass::~VulkanRenderPass()
   }
 }
 
-void VulkanRenderPass::Begin(VkCommandBuffer* _commandBuffer,
-                             VkFramebuffer _frameBuffer)
+void VulkanRenderPass::Begin(VulkanCommandBuffer* _commandBuffer,
+                             const VkFramebuffer& _frameBuffer)
 {
+  // Render pass info object
+  VkRenderPassBeginInfo beginInfo = {};
+  beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  beginInfo.framebuffer = _frameBuffer;
+  beginInfo.renderArea.offset.x = m_x;
+  beginInfo.renderArea.offset.y = m_y;
+  beginInfo.renderArea.extent.width = m_w;
+  beginInfo.renderArea.extent.height = m_h;
+
+  // Default colour for the renderer. First for colour, second for depth;
+  std::array<VkClearValue, 2> clearValues;
+  clearValues[0] = {};
+  clearValues[1] = {};
+  clearValues[0].color = {m_r, m_g, m_b, m_a};
+  clearValues[1].depthStencil.depth = m_depth;
+  clearValues[1].depthStencil.stencil = m_stencil;
+  beginInfo.clearValueCount = static_cast<U32>(clearValues.size());
+  beginInfo.pClearValues = clearValues.data();
+
+  // Fill the command buffer
+  vkCmdBeginRenderPass(_commandBuffer->commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  _commandBuffer->state = VulkanCommandBufferState::kInRenderPass;
+
+  // Create & set viewport & scissor
+  //VkViewport viewport{};
+  //viewport.x = m_x;
+  //viewport.y = m_y;
+  //viewport.width = m_w;
+  //viewport.height = m_h;
+  //viewport.minDepth = 0.0f;
+  //viewport.maxDepth = m_depth;
+  //VkRect2D scissor{{m_x, m_y}, {m_w, m_h}};
+  //vkCmdSetViewport(_commandBuffer->commandBuffer, 0, 1, &viewport);
+  //vkCmdSetScissor(_commandBuffer->commandBuffer, 0, 1, &scissor);
+}
+
+void VulkanRenderPass::End(VulkanCommandBuffer* _commandBuffer)
+{
+  vkCmdEndRenderPass(_commandBuffer->commandBuffer);
+  _commandBuffer->state = VulkanCommandBufferState::kRecording;
 }
 
 } // namespace psge
