@@ -89,6 +89,14 @@ namespace psge
     U32 ScoreDevice(const VkPhysicalDevice& _device);
 
     /**
+     * @brief Checks if the required extensions are supported by a device
+     * 
+     * @param _device a physical device to check extensions for
+     * @return B8 are all the extensions supported?
+     */
+    B8 CheckRequiredExtensions(const VkPhysicalDevice& _device);
+
+    /**
      * @brief Create a Logical Device that we interact with
      * 
      * @return B8  was the creation successfull?
@@ -200,11 +208,13 @@ namespace psge
     QueueFamilyIndices m_queueIndices;
 
 
-
     /// @brief List of required device extensions
     /// @todo Hard-coded!
     const std::vector<const C8*>  m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     const std::vector<const C8*>  m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
+
+    std::vector<VkExtensionProperties> m_availableExtensions;
+
 
     /// @brief Are the validation layers enabled?
     /// @todo: Make this a precompiler!

@@ -27,6 +27,7 @@
 #include "Graphics/RendererPluginInterface.hpp"
 #include "Graphics/VulkanDevice.hpp"
 #include "Graphics/VulkanSwapchain.hpp"
+#include "Graphics/VulkanRenderPass.hpp"
 
 namespace psge
 {
@@ -143,9 +144,12 @@ namespace psge
     /// @brief Unique pointer to the image swapchain
     std::unique_ptr<VulkanSwapchain> m_swapchain;
 
+    /// @brief Unique pointer to the vulkan renderpass
+    std::unique_ptr<VulkanRenderPass> m_renderpass;
+
     VkCommandPool m_commandPool;
 
-    /// Custom memory allocator
+    /// @brief Custom memory allocator
     /// @todo: Create custom memory allocation, at least for tracking
     std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
 
@@ -177,8 +181,6 @@ namespace psge
     B8 m_initialized;
 
     U64 m_frameNumber;
-
-
   };
 
 }; // namespace psge

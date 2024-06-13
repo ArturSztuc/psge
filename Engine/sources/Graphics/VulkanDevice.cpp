@@ -89,7 +89,7 @@ B8 VulkanDevice::CreateLogicalDevice()
   deviceInfo.pQueueCreateInfos    = queueCreateInfos.data();
 
   deviceInfo.pEnabledFeatures         = &deviceFeatures;
-  deviceInfo.enabledExtensionCount    = m_deviceExtensions.size();
+  deviceInfo.enabledExtensionCount    = static_cast<U32>(m_deviceExtensions.size());
   deviceInfo.ppEnabledExtensionNames  = m_deviceExtensions.data();
 
   deviceInfo.enabledLayerCount = 0;
@@ -340,6 +340,10 @@ U32 VulkanDevice::ScoreDevice(const VkPhysicalDevice& _device)
   VkPhysicalDeviceFeatures features;
   VkPhysicalDeviceMemoryProperties memory;
 
+  if (!CheckRequiredExtensions(_device)) {
+    return 0;
+  }
+
   vkGetPhysicalDeviceProperties(_device, &properties);
   vkGetPhysicalDeviceFeatures(_device, &features);
   vkGetPhysicalDeviceMemoryProperties(_device, &memory);
@@ -370,6 +374,27 @@ U32 VulkanDevice::ScoreDevice(const VkPhysicalDevice& _device)
   }
 
   return ret;
+}
+
+B8 VulkanDevice::CheckRequiredExtensions(const VkPhysicalDevice& _device)
+{
+  // Get the availabe extensions first
+  U32 extensionCount;
+  vkEnumerateDeviceExtensionProperties(_device, nullptr, &extensionCount, nullptr);
+  m_availableExtensions.resize(extensionCount);
+  vkEnumerateDeviceExtensionProperties(_device, nullptr, &extensionCount, m_availableExtensions.data());
+
+  // Check if we get all the required extensions
+  U32 extensionsMatched = 0;
+  for (const VkExtensionProperties& avail : m_availableExtensions) {
+    for(const C8* req : m_deviceExtensions) {
+      if (S64(req).Equals(S64(avail.extensionName))){
+        extensionsMatched++;
+      }
+    }
+  }
+
+  return m_deviceExtensions.size() == extensionsMatched;
 }
 
 } // namespace psge
