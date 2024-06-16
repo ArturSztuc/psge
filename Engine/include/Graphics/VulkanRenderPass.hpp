@@ -48,13 +48,116 @@ enum class VulkanCommandBufferState
 };
 
 /**
- * @struct VulkanCommandBuffer
- * @brief 
+ * @class VulkanCommandBuffer
+ * @brief A class containing logic for the vulkan command buffers
  */
-struct VulkanCommandBuffer
+class VulkanCommandBuffer
 {
-  VkCommandBuffer commandBuffer;
-  VulkanCommandBufferState state;
+public:
+  /**
+   * @brief Allocates command buffer from the pool
+   * 
+   * @param _device the vulkan device, with access to the logical device
+   * @param _pool command pool to allocate the command buffer from
+   * @param _isPrimary is the command buffer primary?
+   */
+  void Allocate(VulkanDevice* _device,
+                VkCommandPool _pool,
+                B8 _isPrimary);
+
+  /**
+   * @brief Allocates & begins recording single-use command buffer
+   * 
+   * This makes some assumptions, single-use command buffers will always be
+   * primary, and since it's single use, "renderpass continue" and "simultaneous
+   * use" are off.
+   * 
+   * @param _device the vulkan device, with access to the logical device
+   * @param _pool command pool to allocate the command buffer from
+   */
+  void AllocateAndSingleUse(VulkanDevice* _device,
+                            VkCommandPool _pool);
+
+  /**
+   * @brief Ends the recording of a single-use command buffer, submit, wait & freen
+   * 
+   * This function submits the command buffer to a given queue after ending the
+   * recording. It then waits for the queue to becomes idle, and frees the
+   * command buffer.
+   * 
+   * @param _device the vulkan device, with access to the logical device
+   * @param _pool command pool to allocate the command buffer from
+   * @param _queue queue to submit the command buffer into
+   */
+  void EndSingleUse(VulkanDevice* _device,
+                    VkCommandPool _pool,
+                    VkQueue _queue);
+
+  /**
+   * @brief Frees the command buffer, unallocating it
+   * 
+   * @param _device the vulkan device, with access to the logical device
+   * @param _pool command pool to allocate the command buffer from
+   */
+  void Free(VulkanDevice* _device,
+            VkCommandPool _pool);
+
+  void Begin(B8 _isSingleUse,
+             B8 _isRenderpassContinue,
+             B8 _isSimultaneousUse);
+
+  /**
+   * @brief Ends the recording of the vulkan command buffer
+   */
+  void End();
+
+  /**
+   * @brief Sets the command buffers's status to submitted
+   */
+  void Submitted();
+
+  /**
+   * @brief Resets the status of the command buffer to kUnallocated
+   */
+  void Reset();
+
+  /**
+   * @brief Gets the internally held vulkan command buffer
+   * 
+   * @return VkCommandBuffer internally held command buffer
+   */
+  VkCommandBuffer GetCommandBuffer() { return m_commandBuffer; };
+
+  /**
+   * @brief Retreives the current state of the command buffer
+   * 
+   * @return VulkanCommandBufferState current state of the command buffer
+   */
+  VulkanCommandBufferState GetState() { return m_state; };
+
+  /**
+   * @brief Is the VkCommandBuffer primary?
+   * 
+   * @return B8 Is the VkCommandBuffer primary?
+   */
+  B8 IsPrimary() { return m_primary; };
+
+  /**
+   * @brief Set the state of the command buffer
+   * 
+   * @param _state state of the command buffer
+   */
+  void SetState(VulkanCommandBufferState _state) { m_state = _state; };
+
+private:
+  /// @brief The current state of the command buffer
+  VulkanCommandBufferState m_state = VulkanCommandBufferState::kUnallocated;
+
+  /// @brief Internally held/allocated command buffer
+  VkCommandBuffer m_commandBuffer;
+
+  /// @brief Is the command buffer primary?
+  B8 m_primary;
 };
 
 

@@ -93,6 +93,13 @@ namespace psge
     B8 CreateDebugger();
 
     /**
+     * @brief Create a new command buffer
+     * 
+     * @return B8 was the buffer succesfully created?
+     */
+    B8 CreateCommandBuffers();
+
+    /**
      * @brief Get the required Vulkan Extensions, including validation layers
      * 
      * @return std::vector<const C8 *> vector of const chars pointers to extension names
@@ -147,7 +154,8 @@ namespace psge
     /// @brief Unique pointer to the vulkan renderpass
     std::unique_ptr<VulkanRenderPass> m_renderpass;
 
-    VkCommandPool m_commandPool;
+    /// @brief A vector of graphics-related command buffers
+    std::vector<VulkanCommandBuffer> m_graphicsCommandBuffers;
 
     /// @brief Custom memory allocator
     /// @todo: Create custom memory allocation, at least for tracking

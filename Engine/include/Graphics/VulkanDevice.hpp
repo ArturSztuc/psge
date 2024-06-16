@@ -59,6 +59,7 @@ namespace psge
     VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() {return m_surfaceSupportedCapabilities;}
     QueueFamilyIndices GetQueueFamilyIndices() {return m_queueIndices;}
     VkFormat GetDepthFormat() {return m_depthFormat;}
+    VkCommandPool GetGraphicsCommandPool() {return m_graphicsCommandPool;}
 
     U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
 
@@ -102,6 +103,13 @@ namespace psge
      * @return B8  was the creation successfull?
      */
     B8 CreateLogicalDevice();
+
+    /**
+     * @brief Create a Graphics Command pool
+     * 
+     * @return B8 was the creation successfull?
+     */
+    B8 CreateGraphicsCommandPool();
     
     /**
      * @brief Finds and loads all the physical device properties/features etc
@@ -207,14 +215,16 @@ namespace psge
     /// @brief All the queue family indices
     QueueFamilyIndices m_queueIndices;
 
+    /// @brief The graphics command pool
+    VkCommandPool m_graphicsCommandPool;
 
     /// @brief List of required device extensions
     /// @todo Hard-coded!
     const std::vector<const C8*>  m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     const std::vector<const C8*>  m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
+    /// @brief A list of available extensions for reuse
     std::vector<VkExtensionProperties> m_availableExtensions;
-
 
     /// @brief Are the validation layers enabled?
     /// @todo: Make this a precompiler!

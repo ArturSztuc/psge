@@ -71,6 +71,13 @@ public:
    */
   B8 AcquireNextImage(U32* _imageIndex,
                       const U64& _timeoutns);
+  
+  /**
+   * @brief Get the number of in-flight images
+   * 
+   * @return U32 The in-flight image count
+   */
+  U32 GetImageCount() { return m_imageCount; };
 
 // private member functions
 private:

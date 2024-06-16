@@ -44,6 +44,12 @@ void VulkanRenderer::OnUserCreate()
 
 void VulkanRenderer::Destroy()
 {
+  LDEBUG("Shutting down Vulkan command buffers");
+  for (VulkanCommandBuffer& buf : m_graphicsCommandBuffers) {
+    buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
+  }
+  m_graphicsCommandBuffers.clear();
+
   LDEBUG("Shutting down Vulkan renderpass");
   m_renderpass.reset();
 
@@ -139,6 +145,8 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
+  // Create the renderpass
+  /// @todo Make the magic numbers configurable
   m_renderpass = std::make_unique<VulkanRenderPass>(m_instance, 
                                                     m_device.get(), 
                                                     m_memoryAllocator,
@@ -148,6 +156,12 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
                                                     1.0f, 0.0f);
   if (!m_renderpass) {
     LFATAL("Failed to create vulkan renderpass!");
+    return false;
+  }
+
+  // Create the vulkan command buffers
+  if (!CreateCommandBuffers()) {
+    LFATAL("Failed to create vulkan renderbuffers!");
     return false;
   }
 
@@ -230,6 +244,26 @@ B8 VulkanRenderer::CreateDebugger()
 
   return true;
 }
+
+B8 VulkanRenderer::CreateCommandBuffers()
+{
+  if (m_graphicsCommandBuffers.empty()) {
+    m_graphicsCommandBuffers.resize(m_swapchain->GetImageCount());
+  }
+
+  for (VulkanCommandBuffer& buf : m_graphicsCommandBuffers) {
+    if (buf.GetCommandBuffer()) {
+      buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
+    }
+
+    buf.Allocate(m_device.get(), m_device->GetGraphicsCommandPool(), true);
+  }
+
+  LDEBUG("%d command buffers created!", m_graphicsCommandBuffers.size());
+
+  return true;
+}
+
 
 std::vector<const C8*> VulkanRenderer::GetRequiredExtensions()
 {

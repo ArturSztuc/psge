@@ -28,6 +28,11 @@ VulkanDevice::VulkanDevice(Window* _window,
     LFATAL("Failed to create a logical device!");
   }
 
+  LDEBUG("Creating vulkan graphical command pool");
+  if (!CreateGraphicsCommandPool()) {
+    LFATAL("Failed to crate graphics command pool!");
+  }
+
   LDEBUG("Vulkan device created");
 }
 
@@ -38,6 +43,9 @@ VulkanDevice::~VulkanDevice()
   m_presentQueue = 0;
   m_computeQueue = 0;
   m_transferQueue = 0;
+
+  // Destroy the command buffers
+  vkDestroyCommandPool(m_logicalDevice, m_graphicsCommandPool, m_memoryAllocator.get());
 
   // Destroy the device
   vkDestroyDevice(m_logicalDevice, m_memoryAllocator.get());
@@ -107,6 +115,17 @@ B8 VulkanDevice::CreateLogicalDevice()
   vkGetDeviceQueue(m_logicalDevice, m_queueIndices.transferFamily.value(), 0, &m_transferQueue);
 
   LDEBUG("Created a vulkan logical device!");
+  return true;
+}
+
+B8 VulkanDevice::CreateGraphicsCommandPool()
+{
+  VkCommandPoolCreateInfo poolInfo = {};
+  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  poolInfo.queueFamilyIndex = m_queueIndices.graphicsFamily.value();
+  poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  VK_CHECK(vkCreateCommandPool(m_logicalDevice, &poolInfo, nullptr, &m_graphicsCommandPool));
+  LDEBUG("Created graphics command pool!");
   return true;
 }
 

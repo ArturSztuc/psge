@@ -35,8 +35,6 @@ void Window::frameBufferResizedCallback(GLFWwindow* _window,
   window->m_frameBufferResized = true;
   window->m_extent.width = _width;
   window->m_extent.height = _height;
-  //window->m_width  = _width;
-  //window->m_height = _height;
 }
 
 B8 Window::ShouldClose()

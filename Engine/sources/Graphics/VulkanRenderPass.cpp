@@ -2,7 +2,106 @@
 
 namespace psge
 {
-  
+
+void VulkanCommandBuffer::Allocate(VulkanDevice* _device,
+                                   VkCommandPool _pool,
+                                   B8 _isPrimary)
+{
+  // Zero out our command buffer
+  m_commandBuffer = 0;
+  m_state = VulkanCommandBufferState::kUnallocated;
+
+  // Fill the command buffer info
+  VkCommandBufferAllocateInfo allocInfo = {};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = _pool;
+  allocInfo.level = _isPrimary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+  allocInfo.pNext = 0;
+  allocInfo.commandBufferCount = 1;
+
+  // Allocate the command buffer
+  VK_CHECK(vkAllocateCommandBuffers(*_device->GetDevice(), &allocInfo, &m_commandBuffer));
+  m_state = VulkanCommandBufferState::kReady;
+}
+
+void VulkanCommandBuffer::Free(VulkanDevice* _device,
+                               VkCommandPool _pool)
+{
+  vkFreeCommandBuffers(*_device->GetDevice(), _pool, 1, &m_commandBuffer);
+  m_commandBuffer = 0;
+  m_state = VulkanCommandBufferState::kUnallocated;
+}
+
+void VulkanCommandBuffer::Begin(B8 _isSingleUse,
+                                B8 _isRenderpassContinue,
+                                B8 _isSimultaneousUse)
+{
+  // Create info fo the begin command buffer
+  VkCommandBufferBeginInfo beginInfo = {};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+  // Set the flags
+  beginInfo.flags = 0;
+  if (_isSingleUse) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  }
+  if (_isRenderpassContinue) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+  }
+  if (_isSimultaneousUse) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+  }
+
+  vkBeginCommandBuffer(m_commandBuffer, &beginInfo);
+  m_state = VulkanCommandBufferState::kRecording;
+}
+
+void VulkanCommandBuffer::End() 
+{
+  vkEndCommandBuffer(m_commandBuffer);
+  m_state = VulkanCommandBufferState::kRecordingEnded;
+}
+
+void VulkanCommandBuffer::Submitted()
+{
+  m_state = VulkanCommandBufferState::kSubmitted;
+}
+
+void VulkanCommandBuffer::Reset()
+{
+  m_state = VulkanCommandBufferState::kReady;
+}
+
+void VulkanCommandBuffer::AllocateAndSingleUse(VulkanDevice* _device,
+                                               VkCommandPool _pool)
+{
+  Allocate(_device, _pool, false);
+  Begin(true, false, false);
+}
+
+void VulkanCommandBuffer::EndSingleUse(VulkanDevice* _device,
+                                       VkCommandPool _pool,
+                                       VkQueue _queue)
+{
+  // End recording of the single-use command buffer
+  End();
+
+  // Submit to the queue
+  VkSubmitInfo submitInfo = {};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &m_commandBuffer;
+
+  /// @todo: nullptr -> fence, if needed!
+  VK_CHECK(vkQueueSubmit(_queue, 1, &submitInfo, nullptr));
+
+  // Wait for the queue to finish, since we're not using a fence
+  VK_CHECK(vkQueueWaitIdle(_queue));
+
+  // Free the queue after waiting the queue to finish
+  Free(_device, _pool);
+}
+
 VulkanRenderPass::VulkanRenderPass(VkInstance& _instance,
                                    VulkanDevice* _device,
                                    std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
@@ -129,8 +228,8 @@ void VulkanRenderPass::Begin(VulkanCommandBuffer* _commandBuffer,
   beginInfo.pClearValues = clearValues.data();
 
   // Fill the command buffer
-  vkCmdBeginRenderPass(_commandBuffer->commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-  _commandBuffer->state = VulkanCommandBufferState::kInRenderPass;
+  vkCmdBeginRenderPass(_commandBuffer->GetCommandBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  _commandBuffer->SetState(VulkanCommandBufferState::kInRenderPass);
 
   // Create & set viewport & scissor
   //VkViewport viewport{};
@@ -147,8 +246,8 @@ void VulkanRenderPass::Begin(VulkanCommandBuffer* _commandBuffer,
 
 void VulkanRenderPass::End(VulkanCommandBuffer* _commandBuffer)
 {
-  vkCmdEndRenderPass(_commandBuffer->commandBuffer);
-  _commandBuffer->state = VulkanCommandBufferState::kRecording;
+  vkCmdEndRenderPass(_commandBuffer->GetCommandBuffer());
+  _commandBuffer->SetState(VulkanCommandBufferState::kRecording);
 }
 
 } // namespace psge
