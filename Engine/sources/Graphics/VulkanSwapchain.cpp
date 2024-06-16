@@ -3,6 +3,39 @@
 namespace psge
 {
 
+void VulkanFramebuffer::Allocate(VulkanDevice* _device,
+                                 std::shared_ptr<VulkanRenderPass> _renderpass,
+                                 const std::vector<VkImageView>& _attachments,
+                                 std::shared_ptr<VkAllocationCallbacks> _memoryAcllocator,
+                                 VkExtent2D _extent)
+{
+  m_devicePtr = _device;
+  m_renderpass = _renderpass;
+  m_memoryAllocator = _memoryAcllocator;
+  m_attachments = _attachments;
+
+  // Create info for the framebuffer
+  VkFramebufferCreateInfo createInfo = {};
+  createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  createInfo.renderPass = _renderpass->GetRenderpass();
+  createInfo.attachmentCount = static_cast<U32>(m_attachments.size());
+  createInfo.pAttachments = m_attachments.data();
+  createInfo.width = _extent.width;
+  createInfo.height = _extent.height;
+  createInfo.layers = 1;
+
+  // Create the framebuffer
+  vkCreateFramebuffer(*m_devicePtr->GetDevice(), &createInfo, m_memoryAllocator.get(), &m_framebuffer);
+}
+
+VulkanFramebuffer::~VulkanFramebuffer()
+{
+  LTRACE("Destroyed a framebuffer!");
+  vkDestroyFramebuffer(*m_devicePtr->GetDevice(), m_framebuffer, m_memoryAllocator.get());
+  m_attachments.clear();
+  m_renderpass.reset();
+}
+
 VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
                                  VkExtent2D _extent,
                                  std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
@@ -21,11 +54,18 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
   // Create the depth images
   CreateDepthImages();
 
+  // Create synchronisation objects
+  CreateSyncObjects();
+
   LDEBUG("Created a new swapchain");
 }
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+  // Destory frmaebuffers
+  /// @todo Framebuffers should be destroyed between command buffers & renderpass!
+  m_framebuffers.clear();
+
   // Destroy the image views
   for (U32 i = 0; i < m_images.size(); ++i){
     vkDestroyImageView(*m_devicePtr->GetDevice(), m_views[i], m_memoryAllocator.get());
@@ -189,6 +229,60 @@ void VulkanSwapchain::CreateDepthImages()
 
     VK_CHECK(vkCreateImageView(*m_devicePtr->GetDevice(), &viewInfo, m_memoryAllocator.get(), &m_depthImageViews[i]));
   }
+}
+
+void VulkanSwapchain::RegenerateFramebuffers()
+{
+  //m_framebuffers.reserve(m_imageCount);
+  if (!m_renderpass) {
+    LFATAL("Trying to create framebuffers but there is no renderpass!");
+    return;
+  }
+
+  /// @todo: Make framebuffer a simple struct and fill it with function instead?
+  m_framebuffers.resize(m_imageCount);
+  for (U32 i = 0; i < m_imageCount; ++i) {
+    /// @todo make this dynamic based on configured attachments!
+    std::vector<VkImageView> attachments = {m_views[i], m_depthImageViews[i]};
+
+    m_framebuffers[i].Allocate(m_devicePtr,
+                               m_renderpass,
+                               attachments,
+                               m_memoryAllocator,
+                               m_extent);
+  }
+
+  LTRACE("Regenerated %d framebuffers!", m_framebuffers.size());
+}
+
+void VulkanSwapchain::CreateSyncObjects()
+{
+  // Reserve the objects in ram
+  m_imageAvailableSemaphores.resize(m_maxFramesInFlight);
+  m_imageFinishedSemaphores.resize(m_maxFramesInFlight);
+  m_fencesInFlight.resize(m_maxFramesInFlight);
+  m_imagesInFlight.resize(m_maxFramesInFlight);
+
+  // Create info for the semaphores
+  VkSemaphoreCreateInfo semaphoreInfo = {};
+  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+  // Create info for the fences. Setting to signaled bit so it doesn't wait for ever.
+  VkFenceCreateInfo fenceInfo = {};
+  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+  // Create the semaphores & fences!
+  for(U32 i = 0; i < m_maxFramesInFlight; ++i) {
+    vkCreateSemaphore(*m_devicePtr->GetDevice(), &semaphoreInfo, m_memoryAllocator.get(), &m_imageAvailableSemaphores[i]);
+    vkCreateSemaphore(*m_devicePtr->GetDevice(), &semaphoreInfo, m_memoryAllocator.get(), &m_imageFinishedSemaphores[i]);
+
+    vkCreateFence(*m_devicePtr->GetDevice(), &fenceInfo, m_memoryAllocator.get(), &m_fencesInFlight[i]);
+    // No images in flight at the beginning, setting to nullptr
+    m_imagesInFlight[i] = nullptr;
+  }
+
+  LDEBUG("Created synchronisation objects!");
 }
 
 void VulkanSwapchain::RecreateSwapchain()

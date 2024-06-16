@@ -126,7 +126,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
   // Get the device
   /// @todo: put this into a function...
-  m_device = std::make_unique<VulkanDevice>(m_window, m_instance, m_usingValidationLayers, GetRequiredValidationLayers(), m_memoryAllocator);
+  m_device = std::make_shared<VulkanDevice>(m_window, m_instance, m_usingValidationLayers, GetRequiredValidationLayers(), m_memoryAllocator);
   if (!m_device) {
     LFATAL("Failed to create vulkan device!");
     return false;
@@ -137,7 +137,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   VkExtent2D vextent;
   vextent.width = wextent.width;
   vextent.height= wextent.height;
-  m_swapchain = std::make_unique<VulkanSwapchain>(m_device.get(), 
+  m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                   vextent,
                                                   m_memoryAllocator);
   if (!m_swapchain) {
@@ -147,8 +147,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
   // Create the renderpass
   /// @todo Make the magic numbers configurable
-  m_renderpass = std::make_unique<VulkanRenderPass>(m_instance, 
-                                                    m_device.get(), 
+  m_renderpass = std::make_shared<VulkanRenderPass>(m_device.get(), 
                                                     m_memoryAllocator,
                                                     0, 0,
                                                     vextent.width, vextent.height,
@@ -158,6 +157,8 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     LFATAL("Failed to create vulkan renderpass!");
     return false;
   }
+  m_swapchain->SetRenderpass(m_renderpass);
+  m_swapchain->RegenerateFramebuffers();
 
   // Create the vulkan command buffers
   if (!CreateCommandBuffers()) {

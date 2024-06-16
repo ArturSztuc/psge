@@ -102,8 +102,7 @@ void VulkanCommandBuffer::EndSingleUse(VulkanDevice* _device,
   Free(_device, _pool);
 }
 
-VulkanRenderPass::VulkanRenderPass(VkInstance& _instance,
-                                   VulkanDevice* _device,
+VulkanRenderPass::VulkanRenderPass(VulkanDevice* _device,
                                    std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
                                    F32 _x, F32 _y, F32 _w, F32 _h,
                                    F32 _r, F32 _g, F32 _b, F32 _a,

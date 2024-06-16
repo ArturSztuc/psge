@@ -93,9 +93,9 @@ namespace psge
     B8 CreateDebugger();
 
     /**
-     * @brief Create a new command buffer
+     * @brief Create new command buffers
      * 
-     * @return B8 was the buffer succesfully created?
+     * @return B8 were the commandbuffers succesfully created?
      */
     B8 CreateCommandBuffers();
 
@@ -146,13 +146,13 @@ namespace psge
     VkDebugUtilsMessengerEXT m_debugMessenger;
 
     /// @brief Unique pointer to the platform's accelerator device (GPU)
-    std::unique_ptr<VulkanDevice> m_device;
+    std::shared_ptr<VulkanDevice> m_device;
 
     /// @brief Unique pointer to the image swapchain
-    std::unique_ptr<VulkanSwapchain> m_swapchain;
+    std::shared_ptr<VulkanSwapchain> m_swapchain;
 
     /// @brief Unique pointer to the vulkan renderpass
-    std::unique_ptr<VulkanRenderPass> m_renderpass;
+    std::shared_ptr<VulkanRenderPass> m_renderpass;
 
     /// @brief A vector of graphics-related command buffers
     std::vector<VulkanCommandBuffer> m_graphicsCommandBuffers;

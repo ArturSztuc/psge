@@ -8,9 +8,38 @@
 // internal includes
 #include "Core/Core.h"
 #include "Graphics/VulkanDevice.hpp"
+#include "Graphics/VulkanRenderPass.hpp"
 
 namespace psge
 {
+
+class VulkanFramebuffer
+{
+public:
+  void Allocate(VulkanDevice* _device,
+                std::shared_ptr<VulkanRenderPass> _renderpass,
+                const std::vector<VkImageView>& _attachments,
+                std::shared_ptr<VkAllocationCallbacks> _memoryAcllocator,
+                VkExtent2D _extent);
+
+  ~VulkanFramebuffer();
+
+private:
+  /// @brief Pointer to the device object
+  VulkanDevice* m_devicePtr;
+
+  /// @brief Vulkan framebuffer
+  VkFramebuffer m_framebuffer;
+
+  /// @brief Pointer to our vulkan renderpass
+  std::shared_ptr<VulkanRenderPass> m_renderpass;
+
+  /// @brief Shared pointer to our custom memory allocator
+  std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
+
+  /// @brief Vector of pointers for our attachments
+  std::vector<VkImageView> m_attachments;
+};
 
 /**
  * @class Vulkan renderer swapchain class
@@ -35,22 +64,23 @@ public:
   
   ~VulkanSwapchain();
 
-  /**
-   * @brief Creates the swapchain
-   */
-  void CreateSwapchain();
+  void SetRenderpass(std::shared_ptr<VulkanRenderPass> _renderpass) { m_renderpass = _renderpass; };
 
   /**
-   * @brief Creates the image views
-   * @todo merge with swpachain, or deload some of work from createswapchain to imageviews
+   * @brief Recreates already existing swapchain
    */
-  void CreateImageViews();
-
-  /**
-   * @brief Creates the depth images, image views, memory
-   */
-  void CreateDepthImages();
   void RecreateSwapchain();
+
+  /**
+   * @brief Create new, or regenerate framebuffers
+   * 
+   * The framebuffers will need to be recreated each time we resize the
+   * window. This function therefore creates new framebuffers if there are
+   * none already, or regenerate them if they already exist.
+   * 
+   * @return B8 were the framebuffers successfully created?
+   */
+  void RegenerateFramebuffers();
 
   /**
    * @brief Submits the rendererd image onto present queue
@@ -81,11 +111,34 @@ public:
 
 // private member functions
 private:
+  /**
+   * @brief Creates the swapchain
+   */
+  void CreateSwapchain();
+
+  /**
+   * @brief Creates the image views
+   * @todo merge with swpachain, or deload some of work from createswapchain to imageviews
+   */
+  void CreateImageViews();
+
+  /**
+   * @brief Creates the depth images, image views, memory
+   */
+  void CreateDepthImages();
+
+  /**
+   * @brief Create a synchronisation objects (semaphores & fences)
+   * @todo: Perhaps this should be in renderer, rather than swapchain?
+   */
+  void CreateSyncObjects();
 
 // private data members
 private:
   /// @brief Pointer to the logical device
   VulkanDevice* m_devicePtr;
+
+  std::shared_ptr<VulkanRenderPass> m_renderpass;
 
   /// @brief Window extent for drawing
   VkExtent2D m_extent;
@@ -121,7 +174,13 @@ private:
   std::vector<VkDeviceMemory> m_depthImageMem;
 
   /// @brief Vector of fences (currently not used)
-  std::vector<VkFence> m_fences;
+  std::vector<VkFence> m_fencesInFlight;
+
+  /// @brief Vector of fences that are owned elsewhere
+  std::vector<VkFence*> m_imagesInFlight;
+
+  /// @brief A vector of vulkan framebuffers
+  std::vector<VulkanFramebuffer> m_framebuffers;
 
   /**
    * @brief Maximum number of buffers for rendering
