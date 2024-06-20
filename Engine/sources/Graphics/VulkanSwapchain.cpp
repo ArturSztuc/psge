@@ -62,6 +62,31 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+  // Wait for the device to become idle before destroying anything
+  vkDeviceWaitIdle(*m_devicePtr->GetDevice());
+
+  // Destroy the synchronisation objects
+  for (U32 i = 0; i < m_maxFramesInFlight; ++i) {
+    // Destroy the semaphores
+    vkDestroySemaphore(*m_devicePtr->GetDevice(),
+                        m_imageAvailableSemaphores[i],
+                        m_memoryAllocator.get());
+    vkDestroySemaphore(*m_devicePtr->GetDevice(),
+                        m_imageFinishedSemaphores[i],
+                        m_memoryAllocator.get());
+
+    // Destroy the fences
+    m_imagesInFlight[i] = nullptr;
+    vkDestroyFence(*m_devicePtr->GetDevice(),
+                    m_fencesInFlight[i],
+                    m_memoryAllocator.get());
+  }
+  // Clear the semaphores & fences
+  m_imageAvailableSemaphores.clear();
+  m_imageFinishedSemaphores.clear();
+  m_imagesInFlight.clear();
+  m_fencesInFlight.clear();
+
   // Destory frmaebuffers
   /// @todo Framebuffers should be destroyed between command buffers & renderpass!
   m_framebuffers.clear();
@@ -261,7 +286,7 @@ void VulkanSwapchain::CreateSyncObjects()
   m_imageAvailableSemaphores.resize(m_maxFramesInFlight);
   m_imageFinishedSemaphores.resize(m_maxFramesInFlight);
   m_fencesInFlight.resize(m_maxFramesInFlight);
-  m_imagesInFlight.resize(m_maxFramesInFlight);
+  m_imagesInFlight.resize(m_imageCount, VK_NULL_HANDLE);
 
   // Create info for the semaphores
   VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -277,20 +302,70 @@ void VulkanSwapchain::CreateSyncObjects()
     vkCreateSemaphore(*m_devicePtr->GetDevice(), &semaphoreInfo, m_memoryAllocator.get(), &m_imageAvailableSemaphores[i]);
     vkCreateSemaphore(*m_devicePtr->GetDevice(), &semaphoreInfo, m_memoryAllocator.get(), &m_imageFinishedSemaphores[i]);
 
-    vkCreateFence(*m_devicePtr->GetDevice(), &fenceInfo, m_memoryAllocator.get(), &m_fencesInFlight[i]);
-    // No images in flight at the beginning, setting to nullptr
-    m_imagesInFlight[i] = nullptr;
+    CreateFence(m_fencesInFlight[i], true);
   }
 
   LDEBUG("Created synchronisation objects!");
 }
+
+void VulkanSwapchain::CreateFence(VkFence& _fence,
+                                  B8 _signaled)
+{
+  // Create fence info
+  VkFenceCreateInfo fenceInfo = {};
+  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  // Signal fence if required
+  if (_signaled) {
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+  }
+
+  VK_CHECK(vkCreateFence(*m_devicePtr->GetDevice(), &fenceInfo, m_memoryAllocator.get(), &_fence));
+}
+
+B8 VulkanSwapchain::WaitFence(VkFence* _fence,
+                              U64 _timeout)
+{
+  VkResult result = vkWaitForFences(*m_devicePtr->GetDevice(),
+                                    1,
+                                    _fence,
+                                    false,
+                                    _timeout);
+  switch (result) {
+    case VK_SUCCESS:
+      return true;
+    case VK_TIMEOUT:
+      LWARN("Vulkan fence timed out!");
+      break;
+    case VK_ERROR_DEVICE_LOST:
+      LERROR("Vulkan device lost!");
+      break;
+    case VK_ERROR_OUT_OF_HOST_MEMORY:
+      LERROR("Host out of RAM memory!");
+      break;
+    case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+      LERROR("Device out of VRAM memory!");
+      break;
+  }
+
+  return false;
+}
+
+void VulkanSwapchain::ResetFence(VkFence& _fence)
+{
+  // Do non-cpu-blocking check (with 0 timeout) whether fence is signalled
+  if (WaitFence(&_fence, 0)) {
+    // Reset the fence if signalled
+    VK_CHECK(vkResetFences(*m_devicePtr->GetDevice(), 1, &_fence));
+  }
+}
+
 
 void VulkanSwapchain::RecreateSwapchain()
 {
 }
 
 B8 VulkanSwapchain::Present(U32 _presentImageIndex,
-                            VkQueue& _presentQueue)
+                            VkQueue _presentQueue)
 {
   // Return image to the swapchain for presenting
   VkPresentInfoKHR presentInfo = {};
@@ -315,19 +390,66 @@ B8 VulkanSwapchain::Present(U32 _presentImageIndex,
     return false;
   }
 
+  // Set the current frame index, looping around max frames in flight
+  m_currentFrameIndex = (m_currentFrameIndex + 1) % m_maxFramesInFlight;
+
+  return true;
+}
+
+B8 VulkanSwapchain::EndChain(VulkanCommandBuffer* _buffer, U32 _imageIndex)
+{
+  // Make sure the previous frame is not using this image
+  if (m_imagesInFlight[_imageIndex] != VK_NULL_HANDLE) {
+    WaitFence(m_imagesInFlight[_imageIndex], std::numeric_limits<U64>::max());
+  }
+
+  // Mark the image as in-use for this frame
+  m_imagesInFlight[_imageIndex] = &m_fencesInFlight[m_currentFrameIndex];
+
+  // Reset the fence
+  ResetFence(m_fencesInFlight[m_currentFrameIndex]);
+
+  // Submit info to the queue
+  VkSubmitInfo submitInfo = {};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  // Command buffers to execute
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &(_buffer->m_commandBuffer);
+  // Semaphores to be signalled when the queue is complete
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = &m_imageFinishedSemaphores[m_currentFrameIndex];
+  // Wait semaphores, the operation cannot be completed till these are completed
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = &m_imageAvailableSemaphores[m_currentFrameIndex];
+  std::array<VkPipelineStageFlags,1> waitFlags = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  submitInfo.pWaitDstStageMask = waitFlags.data();
+   
+   // Submit to the grapics queue!
+  VkResult result = vkQueueSubmit(m_devicePtr->GetGraphicsQueue(),
+                                  1,
+                                  &submitInfo,
+                                  m_fencesInFlight[m_currentFrameIndex]);
+  if (result != VK_SUCCESS) {
+    LERROR("vkQueueSubmit failed at EndFrame with error: %s", string_VkResult(result));
+    return false;
+  }
+
+  _buffer->Submitted();
+
   return true;
 }
 
 B8 VulkanSwapchain::AcquireNextImage(U32* _imageIndex,
                                      const U64& _timeoutns)
 {
-  /// @todo: fences!
-  //vkWaitForFences(m_devicePtr->GetDevice(), 1, )
+  if (!WaitFence(&m_fencesInFlight[m_currentFrameIndex], std::numeric_limits<U64>::max())) {
+    return false;
+  }
 
-  VkResult result = vkAcquireNextImageKHR(*(m_devicePtr->GetDevice()), 
+  VkResult result = vkAcquireNextImageKHR(*m_devicePtr->GetDevice(), 
                                           m_swapchain,
                                           _timeoutns,
-                                          m_imageAvailableSemaphores[m_currentImageIndex],
+                                          m_imageAvailableSemaphores[m_currentFrameIndex],
                                           VK_NULL_HANDLE,
                                           _imageIndex);
 

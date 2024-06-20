@@ -24,6 +24,13 @@ public:
 
   ~VulkanFramebuffer();
 
+  /**
+   * @brief Get the vulkan framebuffer
+   * 
+   * @return VkFramebuffer the vulkan framebuffer
+   */
+  VkFramebuffer Get() {return m_framebuffer;};
+
 private:
   /// @brief Pointer to the device object
   VulkanDevice* m_devicePtr;
@@ -86,11 +93,22 @@ public:
    * @brief Submits the rendererd image onto present queue
    * 
    * @param _presentImageIndex index of the image to present
-   * @param _presentQueue present queueu to puth the image onto
+   * @param _presentQueue present queue to puth the image onto
    * @return B8 was the push to the queue successfull?
    */
   B8 Present(U32 _presentImageIndex,
-             VkQueue& _presentQueue);
+             VkQueue _presentQueue);
+
+  /**
+   * @brief Function that ends the swapchain pass
+   * 
+   * @todo: Rethink: renderpass should be integral part of the swapchain?
+   * 
+   * @param _buffer the vulkan command buffer to submit
+   * @param _imageIndex the current image index
+   * @return B8 was the end chain successfull?
+   */
+  B8 EndChain(VulkanCommandBuffer* _buffer, U32 _imageIndex);
 
   /**
    * @brief Gets the next image's index for presenting
@@ -108,6 +126,14 @@ public:
    * @return U32 The in-flight image count
    */
   U32 GetImageCount() { return m_imageCount; };
+
+  /**
+   * @brief Getter for the vulkan frmaebuffer object
+   * 
+   * @param _imageIndex image index for the framebuffer
+   * @return VkFramebuffer the vulkan framebuffer
+   */
+  VkFramebuffer GetVkFramebuffer(U32 _imageIndex) {return m_framebuffers[_imageIndex].Get(); };
 
 // private member functions
 private:
@@ -133,6 +159,34 @@ private:
    */
   void CreateSyncObjects();
 
+  /**
+   * @brief Allocate a vulkan fence and signal it if needed
+   * 
+   * @todo: Either Wait/Create/ResetFence should be pointers or references...
+   * 
+   * @param _fence fence to create/initialize
+   * @param _signaled is the fence to be signaled?
+   */
+  void CreateFence(VkFence& _fence,
+                   B8 _signaled);
+
+  /**
+   * @brief Wait for the fence to complete
+   * 
+   * @param _fence fence to complete
+   * @param _timeout max amount of time we will wait for fence to complete
+   * @return B8 did the fence complete?
+   */
+  B8 WaitFence(VkFence* _fence,
+               U64 _timeout);
+
+  /**
+   * @brief Resets the fence
+   * 
+   * @param _fence fence to reset
+   */
+  void ResetFence(VkFence& _fence);
+
 // private data members
 private:
   /// @brief Pointer to the logical device
@@ -151,9 +205,6 @@ private:
 
   /// @brief Number of images to hold in the buffer
   U32 m_imageCount;
-
-  /// @brief Current image index for drawing
-  U32 m_currentImageIndex;
 
   /// @brief Current frame index for drawing
   U32 m_currentFrameIndex;

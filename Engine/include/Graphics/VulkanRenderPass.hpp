@@ -149,12 +149,12 @@ public:
    */
   void SetState(VulkanCommandBufferState _state) { m_state = _state; };
 
+  /// @brief Internally held/allocated command buffer
+  VkCommandBuffer m_commandBuffer;
 private:
   /// @brief The current state of the command buffer
   VulkanCommandBufferState m_state = VulkanCommandBufferState::kUnallocated;
 
-  /// @brief Internally held/allocated command buffer
-  VkCommandBuffer m_commandBuffer;
 
   /// @brief Is the command buffer primary?
   B8 m_primary;
@@ -169,7 +169,7 @@ public:
                    std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
                    F32 _x, F32 _y, F32 _w, F32 _h,
                    F32 _r, F32 _g, F32 _b, F32 _a,
-                   F32 _depth, F32 _stencil);
+                   F32 _depth, U32 _stencil);
 
   ~VulkanRenderPass();
 
@@ -178,7 +178,7 @@ public:
   void AddAttachment(VkAttachmentDescription _attachment);
 
   void Begin(VulkanCommandBuffer* _commandBuffer,
-             const VkFramebuffer& _frameBuffer);
+             VkFramebuffer _frameBuffer);
 
   void End(VulkanCommandBuffer* _commandBuffer);
 
@@ -215,7 +215,7 @@ private:
   F32 m_a;
 
   F32 m_depth;
-  F32 m_stencil;
+  U32 m_stencil;
 };
   
 } // namespace psge

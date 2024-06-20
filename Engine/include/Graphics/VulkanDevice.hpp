@@ -60,6 +60,7 @@ namespace psge
     QueueFamilyIndices GetQueueFamilyIndices() {return m_queueIndices;}
     VkFormat GetDepthFormat() {return m_depthFormat;}
     VkCommandPool GetGraphicsCommandPool() {return m_graphicsCommandPool;}
+    VkQueue GetGraphicsQueue() {return m_graphicsQueue;};
 
     U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
 
