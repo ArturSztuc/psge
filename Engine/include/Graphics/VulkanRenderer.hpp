@@ -17,6 +17,7 @@
 // Vulkan includes
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+#include <vulkan/vk_enum_string_helper.h>
 
 // internal includes
 #include "Core/Core.h"
@@ -100,6 +101,13 @@ namespace psge
     B8 CreateCommandBuffers();
 
     /**
+     * @brief Recreate the vulkan swapchain
+     * 
+     * @return B8 was the swapchain successfully recreated?
+     */
+    B8 RecreateSwapchain();
+
+    /**
      * @brief Get the required Vulkan Extensions, including validation layers
      * 
      * @return std::vector<const C8 *> vector of const chars pointers to extension names
@@ -136,6 +144,8 @@ namespace psge
      * @return std::vector<const C8*>  vector of const char pointers to layers' names
      */
     std::vector<const C8*> GetRequiredValidationLayers();
+
+    void ResizeWindow();
 
   // private member data
   private:
@@ -185,10 +195,25 @@ namespace psge
     /// @brief Shared pointer to the platform's window object
     Window* m_window;
 
+    /// @brief Window extent
+    VkExtent2D m_extent;
+
+    B8 m_recreatingSwapchain;
+
     /// @brief Is the renderer fully initialized?
     B8 m_initialized;
 
+    /// @brief Current frame number
     U64 m_frameNumber;
+
+    /// @brief Image index for presenting onto
+    U32 m_imageIndex;
+
+    /// @brief Generation of the framesize
+    U64 m_frameSizeGeneration;
+
+    /// @brief Generation of the last frame size
+    U64 m_frameLastSizeGeneration;
   };
 
 }; // namespace psge

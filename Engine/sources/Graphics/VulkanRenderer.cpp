@@ -44,6 +44,9 @@ void VulkanRenderer::OnUserCreate()
 
 void VulkanRenderer::Destroy()
 {
+  // Wait for the device to become idle before destroying anything
+  vkDeviceWaitIdle(*m_device->GetDevice());
+
   LDEBUG("Shutting down Vulkan command buffers");
   for (VulkanCommandBuffer& buf : m_graphicsCommandBuffers) {
     buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
@@ -82,11 +85,85 @@ B8 VulkanRenderer::Resize()
 
 B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 {
+  // Check if we're in a process of making a swapchain
+  if (m_recreatingSwapchain) {
+    VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
+    if (result != VK_SUCCESS) {
+      LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
+      return false;
+    }
+
+    LINFO("Recreating swapchain, aborting BeginFrame");
+    return false;
+  }
+
+  // Check if the framesize generation matches previous one
+  if (m_frameSizeGeneration != m_frameLastSizeGeneration) {
+    VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
+    if (result != VK_SUCCESS) {
+      LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
+      return false;
+    }
+
+    // Recreate swapchain and boot out if unsuccessfull. In that case this will
+    // be triggered again on the next loop iteration
+    if (!RecreateSwapchain()) {
+      return false;
+    }
+
+    LINFO("Resized, booting");
+    return false;
+  }
+
+  // Acquire the next image index
+  if (!m_swapchain->AcquireNextImage(&m_imageIndex, std::numeric_limits<U32>::max())) {
+    LERROR("Failed to retreive next image from the swapchain");
+    return false;
+  }
+
+  // Get the pointer to our command buffer & start recording
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+  commandBuffer->Reset();
+  commandBuffer->Begin(false, false, false);
+
+  // Define the viewport/dynamic state
+  /// @note Vulkan doesn't start 0,0 at left down, so we want to flip y/height to make it similar to OpenGL/DirectX
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = static_cast<F32>(m_extent.height);
+  viewport.width = static_cast<F32>(m_extent.width);
+  viewport.height = -static_cast<F32>(m_extent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  // Scissor
+  VkRect2D scissor;
+  scissor.offset = {0, 0};
+  scissor.extent = m_extent;
+  vkCmdSetViewport(commandBuffer->GetCommandBuffer(), 0, 1, &viewport);
+  vkCmdSetScissor(commandBuffer->GetCommandBuffer(), 0, 1, &scissor);
+
+  // Begin the renderpass!
+  m_renderpass->Begin(commandBuffer, m_swapchain->GetVkFramebuffer(m_imageIndex));
+
   return true;
 }
 
 B8 VulkanRenderer::EndFrame(F64 _deltaTime)
 {
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+
+  // End renderpass
+  m_renderpass->End(commandBuffer);
+
+  // End the command buffer, so it's ready to be submitted
+  commandBuffer->End();
+
+  // End the swapchain pass
+  m_swapchain->EndChain(commandBuffer, m_imageIndex);
+
+  // Present onto the screen
+  m_swapchain->Present(m_imageIndex, m_device->GetGraphicsQueue());
 
   m_frameNumber++;
   return true;
@@ -105,6 +182,8 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   m_usingValidationLayers = true;
 
   m_frameNumber = 0;
+  m_frameSizeGeneration = 0;
+  m_recreatingSwapchain = false;
 
   // Set the application and the renderer version
   for (I8 v = 0; v < 3; ++v) {
@@ -134,11 +213,10 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
   // Create the swapchain
   WindowExtent wextent = m_window->GetExtent();
-  VkExtent2D vextent;
-  vextent.width = wextent.width;
-  vextent.height= wextent.height;
+  m_extent.width = wextent.width;
+  m_extent.height= wextent.height;
   m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
-                                                  vextent,
+                                                  m_extent,
                                                   m_memoryAllocator);
   if (!m_swapchain) {
     LFATAL("Failed to create vulkan swapchain!");
@@ -150,9 +228,9 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   m_renderpass = std::make_shared<VulkanRenderPass>(m_device.get(), 
                                                     m_memoryAllocator,
                                                     0, 0,
-                                                    vextent.width, vextent.height,
+                                                    m_extent.width, m_extent.height,
                                                     0.0f, 0.0f, 0.2f, 1.0f,
-                                                    1.0f, 0.0f);
+                                                    1.0f, 0);
   if (!m_renderpass) {
     LFATAL("Failed to create vulkan renderpass!");
     return false;
@@ -169,6 +247,21 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
   // Now the rendering engine is initialized
   m_initialized = true;
   return true;
+}
+
+void VulkanRenderer::ResizeWindow()
+{
+  // Get the window extent
+  WindowExtent wextent = m_window->GetExtent();
+  m_extent.width = wextent.width;
+  m_extent.height= wextent.height;
+
+  // Update the framesize generation
+  m_frameSizeGeneration++;
+
+  LINFO("Vulkan window resized w/h/gen: %i/%i/%llu", m_extent.width,
+                                                     m_extent.height,
+                                                     m_frameSizeGeneration);
 }
 
 B8 VulkanRenderer::CreateInstance()
@@ -328,6 +421,21 @@ std::vector<const C8*> VulkanRenderer::GetRequiredValidationLayers()
 
   LINFO("All required validation layers found!");
   return ret;
+}
+
+B8 VulkanRenderer::RecreateSwapchain() 
+{
+  if (m_recreatingSwapchain) {
+    LERROR("RecreateSwapchain called when already recreating a swapchain.");
+  }
+
+  // Recreating swapchain!
+  m_recreatingSwapchain = true;
+  LINFO("About to recreate the swapchain");
+
+  // Wait for other operations to complete.
+  vkDeviceWaitIdle(*m_device->GetDevice());
+  return true;
 }
 
 } // namespace psge
