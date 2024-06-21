@@ -14,7 +14,7 @@ Window::Window(const std::string& _windowName,
 
   // Give hints to the GLFW
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
   // The last two are glfw monitoring and glfw window share
   m_window = glfwCreateWindow(m_extent.width, m_extent.height, m_windowName.c_str(), nullptr, nullptr);

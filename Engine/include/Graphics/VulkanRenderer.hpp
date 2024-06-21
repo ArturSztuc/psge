@@ -71,6 +71,8 @@ namespace psge
 
     B8 Initialize(RendererConfig& _config, Window* _window);
 
+    B8 RecreatePipeline();
+
     B8 Resize();
 
     B8 BeginFrame(F64 _deltaTime);
@@ -160,6 +162,8 @@ namespace psge
 
     /// @brief Unique pointer to the image swapchain
     std::shared_ptr<VulkanSwapchain> m_swapchain;
+
+    std::shared_ptr<VulkanSwapchain> m_oldSwapchain;
 
     /// @brief Unique pointer to the vulkan renderpass
     std::shared_ptr<VulkanRenderPass> m_renderpass;

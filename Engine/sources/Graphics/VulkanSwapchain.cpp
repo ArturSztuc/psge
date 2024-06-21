@@ -39,11 +39,13 @@ VulkanFramebuffer::~VulkanFramebuffer()
 VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
                                  VkExtent2D _extent,
                                  std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
-                                 U8 _maxFramesInFlight)
+                                 U8 _maxFramesInFlight,
+                                 VkSwapchainKHR _oldSwapchain)
  : m_devicePtr(_device), 
    m_extent(_extent),
    m_memoryAllocator(_memoryAllocator),
-   m_maxFramesInFlight(_maxFramesInFlight)
+   m_maxFramesInFlight(_maxFramesInFlight),
+   m_oldSwapchain(_oldSwapchain)
 {
   // Create the swapchain
   CreateSwapchain();
@@ -160,9 +162,7 @@ void VulkanSwapchain::CreateSwapchain()
   swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
   swapchainInfo.presentMode = m_devicePtr->GetPreferredPresentMode();
   swapchainInfo.clipped = VK_TRUE;
-
-  /// @todo move all of this into "recreate", and set oldSwapchain to old one if recreating? For now explicitly destroying.
-  swapchainInfo.oldSwapchain = 0;
+  swapchainInfo.oldSwapchain = m_oldSwapchain;
 
   // Finally, create the swapchain...
   VK_CHECK(vkCreateSwapchainKHR(*m_devicePtr->GetDevice(), &swapchainInfo, m_memoryAllocator.get(), &m_swapchain));
@@ -258,7 +258,6 @@ void VulkanSwapchain::CreateDepthImages()
 
 void VulkanSwapchain::RegenerateFramebuffers()
 {
-  //m_framebuffers.reserve(m_imageCount);
   if (!m_renderpass) {
     LFATAL("Trying to create framebuffers but there is no renderpass!");
     return;
@@ -439,11 +438,11 @@ B8 VulkanSwapchain::EndChain(VulkanCommandBuffer* _buffer, U32 _imageIndex)
   return true;
 }
 
-B8 VulkanSwapchain::AcquireNextImage(U32* _imageIndex,
-                                     const U64& _timeoutns)
+VkResult VulkanSwapchain::AcquireNextImage(U32* _imageIndex,
+                                           const U64& _timeoutns)
 {
   if (!WaitFence(&m_fencesInFlight[m_currentFrameIndex], std::numeric_limits<U64>::max())) {
-    return false;
+    return VK_SUBOPTIMAL_KHR;
   }
 
   VkResult result = vkAcquireNextImageKHR(*m_devicePtr->GetDevice(), 
@@ -452,18 +451,7 @@ B8 VulkanSwapchain::AcquireNextImage(U32* _imageIndex,
                                           m_imageAvailableSemaphores[m_currentFrameIndex],
                                           VK_NULL_HANDLE,
                                           _imageIndex);
-
-  /// @todo: This might need to be done in the VulkanRenderer instead!
-  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    RecreateSwapchain();
-    return false;
-  } 
-  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-    LFATAL("Failed to obtain the swapchain image!");
-    return false;
-  }
-
-  return true;
+  return result;
 }
   
 } // namespace psge

@@ -67,7 +67,8 @@ public:
   VulkanSwapchain(VulkanDevice* _device,
                   VkExtent2D _extent,
                   std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
-                  U8 _maxFramesInFlight = 2);
+                  U8 _maxFramesInFlight,
+                  VkSwapchainKHR _oldSwapchain = VK_NULL_HANDLE);
   
   ~VulkanSwapchain();
 
@@ -117,8 +118,8 @@ public:
    * @param _timeoutns timeout for getting the image
    * @return B8 did we fill pointer with image index?
    */
-  B8 AcquireNextImage(U32* _imageIndex,
-                      const U64& _timeoutns);
+  VkResult AcquireNextImage(U32* _imageIndex,
+                            const U64& _timeoutns);
   
   /**
    * @brief Get the number of in-flight images
@@ -134,6 +135,8 @@ public:
    * @return VkFramebuffer the vulkan framebuffer
    */
   VkFramebuffer GetVkFramebuffer(U32 _imageIndex) {return m_framebuffers[_imageIndex].Get(); };
+
+  VkSwapchainKHR GetSwapchain() { return m_swapchain; };
 
 // private member functions
 private:

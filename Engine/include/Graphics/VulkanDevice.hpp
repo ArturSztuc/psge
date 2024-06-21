@@ -63,6 +63,11 @@ namespace psge
     VkQueue GetGraphicsQueue() {return m_graphicsQueue;};
 
     U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
+    
+    /**
+     * @brief Finds and loads all the physical device properties/features etc
+     */
+    void FindDeviceProperties();
 
   // private member functions
   private:
@@ -111,11 +116,6 @@ namespace psge
      * @return B8 was the creation successfull?
      */
     B8 CreateGraphicsCommandPool();
-    
-    /**
-     * @brief Finds and loads all the physical device properties/features etc
-     */
-    void FindDeviceProperties();
 
     VkPresentModeKHR PickPresentMode();
 

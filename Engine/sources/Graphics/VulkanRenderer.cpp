@@ -87,13 +87,12 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 {
   // Check if we're in a process of making a swapchain
   if (m_recreatingSwapchain) {
+    LDEBUG("We're in m_RecreatingSwapchain mode, at the beginning of frame");
     VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
     if (result != VK_SUCCESS) {
       LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
       return false;
     }
-
-    LINFO("Recreating swapchain, aborting BeginFrame");
     return false;
   }
 
@@ -107,17 +106,23 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 
     // Recreate swapchain and boot out if unsuccessfull. In that case this will
     // be triggered again on the next loop iteration
-    if (!RecreateSwapchain()) {
+    if (!RecreatePipeline()) {
+      LERROR("Framesize generations are different and recreating pipeline failed!");
       return false;
     }
 
-    LINFO("Resized, booting");
     return false;
   }
 
   // Acquire the next image index
-  if (!m_swapchain->AcquireNextImage(&m_imageIndex, std::numeric_limits<U32>::max())) {
-    LERROR("Failed to retreive next image from the swapchain");
+  VkResult result = m_swapchain->AcquireNextImage(&m_imageIndex, std::numeric_limits<U32>::max());
+
+  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    RecreatePipeline();
+    return false;
+  } 
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    LFATAL("Failed to obtain the swapchain image!");
     return false;
   }
 
@@ -163,7 +168,10 @@ B8 VulkanRenderer::EndFrame(F64 _deltaTime)
   m_swapchain->EndChain(commandBuffer, m_imageIndex);
 
   // Present onto the screen
-  m_swapchain->Present(m_imageIndex, m_device->GetGraphicsQueue());
+  if (!m_swapchain->Present(m_imageIndex, m_device->GetGraphicsQueue()) || m_window->WasWindowResized()) {
+    RecreatePipeline();
+    m_window->ResetWindowResizedFlag();
+  }
 
   m_frameNumber++;
   return true;
@@ -183,6 +191,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
   m_frameNumber = 0;
   m_frameSizeGeneration = 0;
+  m_frameLastSizeGeneration = 0;
   m_recreatingSwapchain = false;
 
   // Set the application and the renderer version
@@ -211,13 +220,64 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
-  // Create the swapchain
+  if (!RecreatePipeline()) {
+    LFATAL("Failed to create the vulkan pipeline!");
+    return false;
+  }
+
+  // Now the rendering engine is initialized
+  m_initialized = true;
+  return true;
+}
+
+B8 VulkanRenderer::RecreatePipeline()
+{
+  if (m_recreatingSwapchain) {
+    LERROR("RecreatePipeline was called when m_recreatingSwapchain is true!");
+    return false;
+  }
+  m_recreatingSwapchain = true;
+
+  // Get the window size
   WindowExtent wextent = m_window->GetExtent();
+  // Don't let the window width or height be 0!
+  while (wextent.height == 0 || wextent.width == 0) {
+    wextent = m_window->GetExtent();
+  }
   m_extent.width = wextent.width;
   m_extent.height= wextent.height;
-  m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
-                                                  m_extent,
-                                                  m_memoryAllocator);
+
+  // Create the swapchain
+  if (!m_swapchain) {
+    m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
+                                                    m_extent,
+                                                    m_memoryAllocator,
+                                                    2);
+  }
+  else {
+    vkDeviceWaitIdle(*m_device->GetDevice());
+
+    // Free all the devices
+    LDEBUG("Shutting down Vulkan command buffers");
+    for (VulkanCommandBuffer& buf : m_graphicsCommandBuffers) {
+      buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
+    }
+    m_graphicsCommandBuffers.clear();
+    m_renderpass.reset();
+    m_oldSwapchain.reset();
+
+    m_oldSwapchain = std::move(m_swapchain);
+    m_swapchain.reset();
+
+    m_device->FindDeviceProperties();
+    m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
+                                                    m_extent,
+                                                    m_memoryAllocator,
+                                                    2,
+                                                    m_oldSwapchain->GetSwapchain());
+  }
+
+
   if (!m_swapchain) {
     LFATAL("Failed to create vulkan swapchain!");
     return false;
@@ -244,8 +304,7 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
-  // Now the rendering engine is initialized
-  m_initialized = true;
+  m_recreatingSwapchain = false;
   return true;
 }
 
@@ -423,19 +482,19 @@ std::vector<const C8*> VulkanRenderer::GetRequiredValidationLayers()
   return ret;
 }
 
-B8 VulkanRenderer::RecreateSwapchain() 
-{
-  if (m_recreatingSwapchain) {
-    LERROR("RecreateSwapchain called when already recreating a swapchain.");
-  }
-
-  // Recreating swapchain!
-  m_recreatingSwapchain = true;
-  LINFO("About to recreate the swapchain");
-
-  // Wait for other operations to complete.
-  vkDeviceWaitIdle(*m_device->GetDevice());
-  return true;
-}
+//B8 VulkanRenderer::RecreateSwapchain() 
+//{
+//  if (m_recreatingSwapchain) {
+//    LERROR("RecreateSwapchain called when already recreating a swapchain.");
+//  }
+//
+//  // Recreating swapchain!
+//  m_recreatingSwapchain = true;
+//  LINFO("About to recreate the swapchain");
+//
+//  // Wait for other operations to complete.
+//  vkDeviceWaitIdle(*m_device->GetDevice());
+//  return true;
+//}
 
 } // namespace psge
