@@ -138,6 +138,8 @@ public:
 
   VkSwapchainKHR GetSwapchain() { return m_swapchain; };
 
+  B8 SwapchainInitialised() { return m_swapchainInitialised; };
+
 // private member functions
 private:
   /**
@@ -254,5 +256,7 @@ private:
 
   /// @brief Shared pointer to our custom memory allocator
   std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
+
+  B8 m_swapchainInitialised;
 };
 } // namespace psge

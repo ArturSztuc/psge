@@ -38,6 +38,8 @@ VulkanDevice::VulkanDevice(Window* _window,
 
 VulkanDevice::~VulkanDevice()
 {
+  vkDeviceWaitIdle(m_logicalDevice);
+
   // Unset the queues
   m_graphicsQueue = 0;
   m_presentQueue = 0;

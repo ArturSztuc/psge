@@ -56,7 +56,13 @@ namespace psge
     VkSurfaceFormatKHR GetPreferredSurfaceFormat() {return m_surfaceFormat;}
     VkPresentModeKHR GetPreferredPresentMode() {return m_presentMode;}
     VkSurfaceKHR GetSurface() { return m_surface;}
-    VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() {return m_surfaceSupportedCapabilities;}
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() {
+
+      // Get the device supported capabilities for surface
+      vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_surfaceSupportedCapabilities);
+
+      return m_surfaceSupportedCapabilities;
+     }
     QueueFamilyIndices GetQueueFamilyIndices() {return m_queueIndices;}
     VkFormat GetDepthFormat() {return m_depthFormat;}
     VkCommandPool GetGraphicsCommandPool() {return m_graphicsCommandPool;}

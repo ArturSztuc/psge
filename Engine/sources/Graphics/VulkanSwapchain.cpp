@@ -121,13 +121,21 @@ void VulkanSwapchain::CreateSwapchain()
   // Pick the extent
   VkExtent2D extent = m_extent;
   VkSurfaceCapabilitiesKHR surfaceCapabilities = m_devicePtr->GetSurfaceCapabilities();
-  if(surfaceCapabilities.currentExtent.width != std::numeric_limits<U32>::max()){
+  if (surfaceCapabilities.currentExtent.width != std::numeric_limits<U32>::max()) {
     extent = surfaceCapabilities.currentExtent;
   } 
-  VkExtent2D minExtent = surfaceCapabilities.minImageExtent;
-  VkExtent2D maxExtent = surfaceCapabilities.maxImageExtent;
-  extent.width = std::clamp(extent.width, minExtent.width, maxExtent.width);
-  extent.height = std::clamp(extent.height, minExtent.height, maxExtent.height);
+  else {
+    VkExtent2D minExtent = surfaceCapabilities.minImageExtent;
+    VkExtent2D maxExtent = surfaceCapabilities.maxImageExtent;
+    extent.width = std::clamp(extent.width, minExtent.width, maxExtent.width);
+    extent.height = std::clamp(extent.height, minExtent.height, maxExtent.height);
+  }
+
+  // Return if the surface extent width doesn't agree with the screen extent
+  if (extent.width != m_extent.width || extent.height != m_extent.height) {
+    m_swapchainInitialised = false;
+    return;
+  }
 
   // Pick the image count
   U32 imageCount = surfaceCapabilities.minImageCount + 1;
@@ -170,9 +178,14 @@ void VulkanSwapchain::CreateSwapchain()
   m_currentFrameIndex = 0;
   m_imageCount = 0;
 
+  // We only specified the minimum number of images in the swapchain, so it's
+  // possible there's more. This is why we first query the final number of
+  // images & then resize swapchain images.
   VK_CHECK(vkGetSwapchainImagesKHR(*m_devicePtr->GetDevice(), m_swapchain, &m_imageCount, nullptr));
   m_images.resize(m_imageCount);
   VK_CHECK(vkGetSwapchainImagesKHR(*m_devicePtr->GetDevice(), m_swapchain, &m_imageCount, m_images.data()));
+
+  m_swapchainInitialised = true;
 }
 
 void VulkanSwapchain::CreateImageViews()

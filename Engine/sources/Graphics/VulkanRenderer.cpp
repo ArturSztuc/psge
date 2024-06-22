@@ -85,16 +85,20 @@ B8 VulkanRenderer::Resize()
 
 B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 {
-  // Check if we're in a process of making a swapchain
-  if (m_recreatingSwapchain) {
-    LDEBUG("We're in m_RecreatingSwapchain mode, at the beginning of frame");
-    VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
-    if (result != VK_SUCCESS) {
-      LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
-      return false;
-    }
+  if (!m_swapchain) {
+    RecreatePipeline();
     return false;
   }
+  // Check if we're in a process of making a swapchain
+  //if (m_recreatingSwapchain) {
+  //  LDEBUG("We're in m_RecreatingSwapchain mode, at the beginning of frame");
+  //  VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
+  //  if (result != VK_SUCCESS) {
+  //    LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
+  //    return false;
+  //  }
+  //  return false;
+  //}
 
   // Check if the framesize generation matches previous one
   if (m_frameSizeGeneration != m_frameLastSizeGeneration) {
@@ -116,7 +120,6 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 
   // Acquire the next image index
   VkResult result = m_swapchain->AcquireNextImage(&m_imageIndex, std::numeric_limits<U32>::max());
-
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     RecreatePipeline();
     return false;
@@ -169,7 +172,9 @@ B8 VulkanRenderer::EndFrame(F64 _deltaTime)
 
   // Present onto the screen
   if (!m_swapchain->Present(m_imageIndex, m_device->GetGraphicsQueue()) || m_window->WasWindowResized()) {
-    RecreatePipeline();
+    if (!RecreatePipeline()) {
+      return false;
+    }
     m_window->ResetWindowResizedFlag();
   }
 
@@ -232,10 +237,10 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
 
 B8 VulkanRenderer::RecreatePipeline()
 {
-  if (m_recreatingSwapchain) {
-    LERROR("RecreatePipeline was called when m_recreatingSwapchain is true!");
-    return false;
-  }
+  //if (m_recreatingSwapchain) {
+  //  LERROR("RecreatePipeline was called when m_recreatingSwapchain is true!");
+  //  return false;
+  //}
   m_recreatingSwapchain = true;
 
   // Get the window size
@@ -270,11 +275,28 @@ B8 VulkanRenderer::RecreatePipeline()
     m_swapchain.reset();
 
     m_device->FindDeviceProperties();
+
+    // Get the screen width once again
+    while (wextent.height == 0 || wextent.width == 0) {
+      wextent = m_window->GetExtent();
+    }
+    m_extent.width = wextent.width;
+    m_extent.height= wextent.height;
+
+    // Create the swapchain
     m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                     m_extent,
                                                     m_memoryAllocator,
                                                     2,
                                                     m_oldSwapchain->GetSwapchain());
+
+    // Remove the swapchain if not initialised properly
+    if (!m_swapchain->SwapchainInitialised()) {
+      m_swapchain.reset();
+      m_swapchain = std::move(m_oldSwapchain);
+      m_oldSwapchain.reset();
+      return false;
+    }
   }
 
 
