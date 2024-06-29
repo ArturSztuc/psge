@@ -33,7 +33,6 @@ VulkanFramebuffer::~VulkanFramebuffer()
   LTRACE("Destroyed a framebuffer!");
   vkDestroyFramebuffer(*m_devicePtr->GetDevice(), m_framebuffer, m_memoryAllocator.get());
   m_attachments.clear();
-  m_renderpass.reset();
 }
 
 VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
@@ -58,6 +57,16 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
 
   // Create synchronisation objects
   CreateSyncObjects();
+
+  // Create the renderpass
+  m_renderpass = std::make_shared<VulkanRenderPass>(m_devicePtr, 
+                                                    m_memoryAllocator, 
+                                                    0, 0, static_cast<U32>(m_extent.width), static_cast<U32>(m_extent.height),
+                                                    0.0f, 0.0f, 0.2f, 1.0f,
+                                                    1.0f, 0);
+
+  // Create the framebuffers
+  RegenerateFramebuffers();
 
   LDEBUG("Created a new swapchain");
 }
@@ -90,8 +99,11 @@ VulkanSwapchain::~VulkanSwapchain()
   m_fencesInFlight.clear();
 
   // Destory frmaebuffers
-  /// @todo Framebuffers should be destroyed between command buffers & renderpass!
+  /// @todo Framebuffers should be destroyed between command buffers & renderpass! Insert command buffers into swapchain?
   m_framebuffers.clear();
+
+  // Destroy the renderpass
+  m_renderpass.reset();
 
   // Destroy the image views
   for (U32 i = 0; i < m_images.size(); ++i){
@@ -408,8 +420,42 @@ B8 VulkanSwapchain::Present(U32 _presentImageIndex,
   return true;
 }
 
-B8 VulkanSwapchain::EndChain(VulkanCommandBuffer* _buffer, U32 _imageIndex)
+void VulkanSwapchain::BeginRenderpass(VulkanCommandBuffer* _commandBuffer,
+                                      const U32& _imageIndex)
 {
+  _commandBuffer->Reset();
+  _commandBuffer->Begin(false, false, false);
+
+  // Define the viewport/dynamic state
+  /// @note Vulkan doesn't start 0,0 at left down, so we want to flip y/height to make it similar to OpenGL/DirectX
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = static_cast<F32>(m_extent.height);
+  viewport.width = static_cast<F32>(m_extent.width);
+  viewport.height = -static_cast<F32>(m_extent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  // Scissor
+  VkRect2D scissor;
+  scissor.offset = {0, 0};
+  scissor.extent = m_extent;
+  vkCmdSetViewport(_commandBuffer->GetCommandBuffer(), 0, 1, &viewport);
+  vkCmdSetScissor(_commandBuffer->GetCommandBuffer(), 0, 1, &scissor);
+
+  // Begin the renderpass!
+  m_renderpass->Begin(_commandBuffer, m_framebuffers[_imageIndex].Get());
+
+}
+
+B8 VulkanSwapchain::EndRenderpass(VulkanCommandBuffer* _buffer, U32 _imageIndex)
+{
+  // End the renderpass
+  m_renderpass->End(_buffer);
+
+  // End the command buffer so it's ready to submit
+  _buffer->End();
+
   // Make sure the previous frame is not using this image
   if (m_imagesInFlight[_imageIndex] != VK_NULL_HANDLE) {
     WaitFence(m_imagesInFlight[_imageIndex], std::numeric_limits<U64>::max());

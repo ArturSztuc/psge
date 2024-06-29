@@ -72,8 +72,6 @@ public:
   
   ~VulkanSwapchain();
 
-  void SetRenderpass(std::shared_ptr<VulkanRenderPass> _renderpass) { m_renderpass = _renderpass; };
-
   /**
    * @brief Recreates already existing swapchain
    */
@@ -100,16 +98,24 @@ public:
   B8 Present(U32 _presentImageIndex,
              VkQueue _presentQueue);
 
+  
   /**
-   * @brief Function that ends the swapchain pass
+   * @brief Begins the swapchain & renderpass, beginning the buffer recording
    * 
-   * @todo: Rethink: renderpass should be integral part of the swapchain?
+   * @param _commandBuffer command buffer to start recording into
+   * @param _imageIndex Image index to present
+   */
+  void BeginRenderpass(VulkanCommandBuffer* _commandBuffer,
+                       const U32& _imageIndex);
+
+  /**
+   * @brief Function that ends the renderpass pass
    * 
    * @param _buffer the vulkan command buffer to submit
    * @param _imageIndex the current image index
    * @return B8 was the end chain successfull?
    */
-  B8 EndChain(VulkanCommandBuffer* _buffer, U32 _imageIndex);
+  B8 EndRenderpass(VulkanCommandBuffer* _buffer, U32 _imageIndex);
 
   /**
    * @brief Gets the next image's index for presenting

@@ -165,9 +165,6 @@ namespace psge
 
     std::shared_ptr<VulkanSwapchain> m_oldSwapchain;
 
-    /// @brief Unique pointer to the vulkan renderpass
-    std::shared_ptr<VulkanRenderPass> m_renderpass;
-
     /// @brief A vector of graphics-related command buffers
     std::vector<VulkanCommandBuffer> m_graphicsCommandBuffers;
 

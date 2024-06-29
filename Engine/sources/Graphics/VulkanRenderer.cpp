@@ -53,9 +53,6 @@ void VulkanRenderer::Destroy()
   }
   m_graphicsCommandBuffers.clear();
 
-  LDEBUG("Shutting down Vulkan renderpass");
-  m_renderpass.reset();
-
   LDEBUG("Shutting down Vulkan swapchain");
   m_swapchain.reset();
 
@@ -131,28 +128,9 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
 
   // Get the pointer to our command buffer & start recording
   VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
-  commandBuffer->Reset();
-  commandBuffer->Begin(false, false, false);
 
-  // Define the viewport/dynamic state
-  /// @note Vulkan doesn't start 0,0 at left down, so we want to flip y/height to make it similar to OpenGL/DirectX
-  VkViewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = static_cast<F32>(m_extent.height);
-  viewport.width = static_cast<F32>(m_extent.width);
-  viewport.height = -static_cast<F32>(m_extent.height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-
-  // Scissor
-  VkRect2D scissor;
-  scissor.offset = {0, 0};
-  scissor.extent = m_extent;
-  vkCmdSetViewport(commandBuffer->GetCommandBuffer(), 0, 1, &viewport);
-  vkCmdSetScissor(commandBuffer->GetCommandBuffer(), 0, 1, &scissor);
-
-  // Begin the renderpass!
-  m_renderpass->Begin(commandBuffer, m_swapchain->GetVkFramebuffer(m_imageIndex));
+  // Begin the renderpass
+  m_swapchain->BeginRenderpass(commandBuffer, m_imageIndex);
 
   return true;
 }
@@ -161,14 +139,8 @@ B8 VulkanRenderer::EndFrame(F64 _deltaTime)
 {
   VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
 
-  // End renderpass
-  m_renderpass->End(commandBuffer);
-
-  // End the command buffer, so it's ready to be submitted
-  commandBuffer->End();
-
-  // End the swapchain pass
-  m_swapchain->EndChain(commandBuffer, m_imageIndex);
+  // End the renderpass, submitting the command buffers
+  m_swapchain->EndRenderpass(commandBuffer, m_imageIndex);
 
   // Present onto the screen
   if (!m_swapchain->Present(m_imageIndex, m_device->GetGraphicsQueue()) || m_window->WasWindowResized()) {
@@ -268,7 +240,7 @@ B8 VulkanRenderer::RecreatePipeline()
       buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
     }
     m_graphicsCommandBuffers.clear();
-    m_renderpass.reset();
+    //m_renderpass.reset();
     m_oldSwapchain.reset();
 
     m_oldSwapchain = std::move(m_swapchain);
@@ -304,21 +276,6 @@ B8 VulkanRenderer::RecreatePipeline()
     LFATAL("Failed to create vulkan swapchain!");
     return false;
   }
-
-  // Create the renderpass
-  /// @todo Make the magic numbers configurable
-  m_renderpass = std::make_shared<VulkanRenderPass>(m_device.get(), 
-                                                    m_memoryAllocator,
-                                                    0, 0,
-                                                    m_extent.width, m_extent.height,
-                                                    0.0f, 0.0f, 0.2f, 1.0f,
-                                                    1.0f, 0);
-  if (!m_renderpass) {
-    LFATAL("Failed to create vulkan renderpass!");
-    return false;
-  }
-  m_swapchain->SetRenderpass(m_renderpass);
-  m_swapchain->RegenerateFramebuffers();
 
   // Create the vulkan command buffers
   if (!CreateCommandBuffers()) {
@@ -503,20 +460,5 @@ std::vector<const C8*> VulkanRenderer::GetRequiredValidationLayers()
   LINFO("All required validation layers found!");
   return ret;
 }
-
-//B8 VulkanRenderer::RecreateSwapchain() 
-//{
-//  if (m_recreatingSwapchain) {
-//    LERROR("RecreateSwapchain called when already recreating a swapchain.");
-//  }
-//
-//  // Recreating swapchain!
-//  m_recreatingSwapchain = true;
-//  LINFO("About to recreate the swapchain");
-//
-//  // Wait for other operations to complete.
-//  vkDeviceWaitIdle(*m_device->GetDevice());
-//  return true;
-//}
 
 } // namespace psge
