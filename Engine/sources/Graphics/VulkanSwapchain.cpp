@@ -55,18 +55,18 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice* _device,
   // Create the depth images
   CreateDepthImages();
 
-  // Create synchronisation objects
-  CreateSyncObjects();
-
   // Create the renderpass
   m_renderpass = std::make_shared<VulkanRenderPass>(m_devicePtr, 
                                                     m_memoryAllocator, 
-                                                    0, 0, static_cast<U32>(m_extent.width), static_cast<U32>(m_extent.height),
+                                                    0, 0, static_cast<U32>(m_swapchainExtent.width), static_cast<U32>(m_swapchainExtent.height),
                                                     0.0f, 0.0f, 0.2f, 1.0f,
                                                     1.0f, 0);
 
   // Create the framebuffers
   RegenerateFramebuffers();
+
+  // Create synchronisation objects
+  CreateSyncObjects();
 
   LDEBUG("Created a new swapchain");
 }
@@ -131,23 +131,24 @@ VulkanSwapchain::~VulkanSwapchain()
 void VulkanSwapchain::CreateSwapchain()
 {
   // Pick the extent
-  VkExtent2D extent = m_extent;
+  m_swapchainExtent = m_extent;
   VkSurfaceCapabilitiesKHR surfaceCapabilities = m_devicePtr->GetSurfaceCapabilities();
   if (surfaceCapabilities.currentExtent.width != std::numeric_limits<U32>::max()) {
-    extent = surfaceCapabilities.currentExtent;
+    m_swapchainExtent = surfaceCapabilities.currentExtent;
   } 
   else {
     VkExtent2D minExtent = surfaceCapabilities.minImageExtent;
     VkExtent2D maxExtent = surfaceCapabilities.maxImageExtent;
-    extent.width = std::clamp(extent.width, minExtent.width, maxExtent.width);
-    extent.height = std::clamp(extent.height, minExtent.height, maxExtent.height);
+    m_swapchainExtent.width = std::clamp(m_swapchainExtent.width, minExtent.width, maxExtent.width);
+    m_swapchainExtent.height = std::clamp(m_swapchainExtent.height, minExtent.height, maxExtent.height);
   }
 
   // Return if the surface extent width doesn't agree with the screen extent
-  if (extent.width != m_extent.width || extent.height != m_extent.height) {
-    m_swapchainInitialised = false;
-    return;
-  }
+  //if (m_swapchainExtent.width != m_extent.width || m_swapchainExtent.height != m_extent.height) {
+  //  std::cout << "NEEEEEEE" << std::endl;
+  //  m_swapchainInitialised = false;
+  //  return;
+  //}
 
   // Pick the image count
   U32 imageCount = surfaceCapabilities.minImageCount + 1;
@@ -161,7 +162,7 @@ void VulkanSwapchain::CreateSwapchain()
   swapchainInfo.surface = m_devicePtr->GetSurface();
   swapchainInfo.imageFormat = m_devicePtr->GetPreferredSurfaceFormat().format;
   swapchainInfo.imageColorSpace = m_devicePtr->GetPreferredSurfaceFormat().colorSpace;
-  swapchainInfo.imageExtent = extent;
+  swapchainInfo.imageExtent = m_swapchainExtent;
   swapchainInfo.imageArrayLayers = 1;
   swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
   swapchainInfo.minImageCount = imageCount;
@@ -239,8 +240,8 @@ void VulkanSwapchain::CreateDepthImages()
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.format = depthFormat;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = m_extent.width;
-    imageInfo.extent.height = m_extent.height;
+    imageInfo.extent.width = m_swapchainExtent.width;
+    imageInfo.extent.height = m_swapchainExtent.height;
     imageInfo.extent.depth  = 1;
     imageInfo.mipLevels = 4;
     imageInfo.arrayLayers = 1;
@@ -298,7 +299,7 @@ void VulkanSwapchain::RegenerateFramebuffers()
                                m_renderpass,
                                attachments,
                                m_memoryAllocator,
-                               m_extent);
+                               m_swapchainExtent);
   }
 
   LTRACE("Regenerated %d framebuffers!", m_framebuffers.size());
@@ -430,16 +431,16 @@ void VulkanSwapchain::BeginRenderpass(VulkanCommandBuffer* _commandBuffer,
   /// @note Vulkan doesn't start 0,0 at left down, so we want to flip y/height to make it similar to OpenGL/DirectX
   VkViewport viewport{};
   viewport.x = 0.0f;
-  viewport.y = static_cast<F32>(m_extent.height);
-  viewport.width = static_cast<F32>(m_extent.width);
-  viewport.height = -static_cast<F32>(m_extent.height);
+  viewport.y = static_cast<F32>(m_swapchainExtent.height);
+  viewport.width = static_cast<F32>(m_swapchainExtent.width);
+  viewport.height = -static_cast<F32>(m_swapchainExtent.height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
   // Scissor
   VkRect2D scissor;
   scissor.offset = {0, 0};
-  scissor.extent = m_extent;
+  scissor.extent = m_swapchainExtent;
   vkCmdSetViewport(_commandBuffer->GetCommandBuffer(), 0, 1, &viewport);
   vkCmdSetScissor(_commandBuffer->GetCommandBuffer(), 0, 1, &scissor);
 

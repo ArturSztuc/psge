@@ -163,8 +163,6 @@ namespace psge
     /// @brief Unique pointer to the image swapchain
     std::shared_ptr<VulkanSwapchain> m_swapchain;
 
-    std::shared_ptr<VulkanSwapchain> m_oldSwapchain;
-
     /// @brief A vector of graphics-related command buffers
     std::vector<VulkanCommandBuffer> m_graphicsCommandBuffers;
 

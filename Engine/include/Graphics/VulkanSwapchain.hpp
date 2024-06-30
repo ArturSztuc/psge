@@ -205,8 +205,11 @@ private:
 
   std::shared_ptr<VulkanRenderPass> m_renderpass;
 
-  /// @brief Window extent for drawing
+  /// @brief Window extent
   VkExtent2D m_extent;
+
+  /// @brief Extent for drawing, which might differ from the window extent
+  VkExtent2D m_swapchainExtent;
 
   /// @brief Internally-held swapchain
   VkSwapchainKHR m_swapchain;

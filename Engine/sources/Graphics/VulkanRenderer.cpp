@@ -240,12 +240,12 @@ B8 VulkanRenderer::RecreatePipeline()
       buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
     }
     m_graphicsCommandBuffers.clear();
-    //m_renderpass.reset();
-    m_oldSwapchain.reset();
 
-    m_oldSwapchain = std::move(m_swapchain);
+    // Move to temporary/old swapchain
+    std::shared_ptr<VulkanSwapchain> oldSwapchain = std::move(m_swapchain);
     m_swapchain.reset();
 
+    // Get the device properties
     m_device->FindDeviceProperties();
 
     // Get the screen width once again
@@ -260,17 +260,16 @@ B8 VulkanRenderer::RecreatePipeline()
                                                     m_extent,
                                                     m_memoryAllocator,
                                                     2,
-                                                    m_oldSwapchain->GetSwapchain());
+                                                    oldSwapchain->GetSwapchain());
 
     // Remove the swapchain if not initialised properly
     if (!m_swapchain->SwapchainInitialised()) {
       m_swapchain.reset();
-      m_swapchain = std::move(m_oldSwapchain);
-      m_oldSwapchain.reset();
+      m_swapchain = std::move(oldSwapchain);
+      oldSwapchain.reset();
       return false;
     }
   }
-
 
   if (!m_swapchain) {
     LFATAL("Failed to create vulkan swapchain!");
