@@ -3,6 +3,7 @@
 *.swp
 *global_log.txt
 Doxyfile
+*.spv
 
 # Folders
 *.cache/
