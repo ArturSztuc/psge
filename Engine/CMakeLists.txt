@@ -108,6 +108,55 @@ set(ASSETS_DIR "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/assets/")
 add_compile_definitions(ASSETS_DIR="${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/assets/")
 add_definitions(-DASSETS_DIR="${ASSETS_DIR}")
 
+
+# Build & install shaders
+
+# Find program to build shaders
+find_program(GLSL_VALIDATOR glslangValidator HINTS
+  ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
+  /usr/bin
+  /usr/local/bin
+  ${VULKAN_SDK_PATH}/Bin
+  ${VULKAN_SDK_PATH}/Bin32
+  $ENV{VULKAN_SDK}/Bin/
+  $ENV{VULKAN_SDK}/Bin32/
+)
+
+# get all fragment & vertex shader files in shaders directory
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+  ${PROJECT_SOURCE_DIR}/assets/shaders/*.frag
+  ${PROJECT_SOURCE_DIR}/assets/shaders/*.vert
+)
+
+# Create commands for each shader
+foreach(GLSL ${GLSL_SOURCE_FILES})
+  get_filename_component(FILE_NAME ${GLSL} NAME)
+  set(SPIRV "${PROJECT_SOURCE_DIR}/assets/shaders/${FILE_NAME}.spv")
+  add_custom_command(
+    OUTPUT ${SPIRV}
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/"
+    COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
+    DEPENDS ${GLSL})
+  list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(GLSL)
+
+# Add new custom target, Shaders
+add_custom_target(
+  Shaders 
+  DEPENDS ${SPIRV_BINARY_FILES}
+)
+
+# Make our main project depend on these shaders
+add_dependencies(${PROJECT_NAME} Shaders)
+
+# Copying from build folder to shaders folder. Maybe not needed...
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders/"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_BINARY_DIR}/assets/shaders"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
+)
+
 #install(FILES ${ASSET_DIR}
 #  DESTINATION ${PROJECT_NAME}/assets
 #)
