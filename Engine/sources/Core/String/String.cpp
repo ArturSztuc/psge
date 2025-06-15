@@ -39,6 +39,12 @@ bool String<MAX_LENGTH>::operator==(const String& rhs) const
   return Equals(rhs);
 }
 
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>::operator const char* () const
+{
+  return m_data;
+}
+
 
 template <size_t MAX_LENGTH>
 String<MAX_LENGTH>::String(const char *str)
