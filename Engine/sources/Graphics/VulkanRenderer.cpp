@@ -144,7 +144,63 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
     return false;
   }
 
+  // TODO:Temporary test code, remove later
+  VkDeviceSize offsets[1] = {0};
+  VkBuffer vertexBuffers[1] = {m_objectVertexBuffer->GetBuffer()};
+  vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(),
+                         0,
+                         1,
+                         vertexBuffers,
+                         offsets);
+
+  vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(),
+                       m_objectIndexBuffer->GetBuffer(),
+                       0,
+                       VK_INDEX_TYPE_UINT32);
+
+  vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(),
+                   6, // Number of indices to draw
+                   1, // Number of instances to draw
+                   0, // First index to draw
+                   0, // Vertex offset
+                   0); // First instance to draw
+  // TODO: end of temporary test code
+
   return true;
+}
+
+void VulkanRenderer::UploadDataRange(VkCommandPool _commandPool,
+                                     VkFence _fence,
+                                     VkQueue _queue,
+                                     std::shared_ptr<VulkanBuffer> _buffer,
+                                     U64 _size,
+                                     U64 _offset,
+                                     void* _data)
+{
+  VkBufferUsageFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  VulkanBuffer staging(m_device, 
+                       m_memoryAllocator, 
+                       _size, 
+                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+                       flags,
+                       true);
+  
+  if (staging.LockMemory(_size, _offset) != VK_SUCCESS) {
+    LFATAL("Failed to lock memory for uploading data to buffer!");
+    return;
+  }
+  staging.WriteToBuffer(_data,
+                        _size,
+                        _offset);
+  staging.UnlockMemory();
+
+  _buffer->CopyFromBuffer(staging,
+                          _commandPool,
+                          _fence,
+                          _queue,
+                          _offset,
+                          _offset,
+                          _size);
 }
 
 B8 VulkanRenderer::EndFrame(F64 _deltaTime)
@@ -219,6 +275,34 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     LFATAL("Failed to create vulkan buffers!");
     return false;
   }
+
+  // TODO: temporary test code, remove later
+  const U32 vertexCount = 4;
+  Mesh::Vertex3D vertices[vertexCount] = {
+    {{0.0f, -0.5f, 0.0f}},
+    {{ 0.5f, 0.5f, 0.0f}},
+    {{ 0.0f,  0.5f, 0.0f}},
+    {{ 0.5f,  -0.5f, 0.0f}},
+  };
+
+  const U32 indexCount = 6;
+  U32 indices[indexCount] = {0, 1, 2, 0, 3, 1};
+
+  UploadDataRange(m_device->GetGraphicsCommandPool(),
+                  0,
+                  m_device->GetGraphicsQueue(),
+                  m_objectVertexBuffer,
+                  sizeof(Mesh::Vertex3D) * vertexCount,
+                  0,
+                  vertices);
+
+  UploadDataRange(m_device->GetGraphicsCommandPool(),
+                  0,
+                  m_device->GetGraphicsQueue(),
+                  m_objectIndexBuffer,
+                  sizeof(U32) * indexCount,
+                  0,
+                  indices);
 
   // Now the rendering engine is initialized
   m_initialized = true;

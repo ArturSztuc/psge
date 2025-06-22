@@ -84,6 +84,14 @@ namespace psge
 
     B8 EndFrame(F64 _deltaTime);
 
+    void UploadDataRange(VkCommandPool _commandPool,
+                         VkFence _fence,
+                         VkQueue _queue,
+                         std::shared_ptr<VulkanBuffer> _buffer,
+                         U64 _size,
+                         U64 _offset,
+                         void* _data);
+
   // private member functions
   private:
     /**
