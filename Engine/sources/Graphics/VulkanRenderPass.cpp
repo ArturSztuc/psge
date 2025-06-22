@@ -75,7 +75,7 @@ void VulkanCommandBuffer::Reset()
 void VulkanCommandBuffer::AllocateAndSingleUse(VulkanDevice* _device,
                                                VkCommandPool _pool)
 {
-  Allocate(_device, _pool, false);
+  Allocate(_device, _pool, true);
   Begin(true, false, false);
 }
 
