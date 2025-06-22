@@ -26,9 +26,12 @@
 
 #include "Graphics/Renderer.hpp"
 #include "Graphics/RendererPluginInterface.hpp"
+
+#include "Graphics/VulkanBuffer.hpp"
 #include "Graphics/VulkanDevice.hpp"
-#include "Graphics/VulkanSwapchain.hpp"
 #include "Graphics/VulkanRenderPass.hpp"
+#include "Graphics/VulkanSwapchain.hpp"
+#include "Graphics/Vulkan/RenderPipelineBase.hpp"
 
 namespace psge
 {
@@ -73,6 +76,8 @@ namespace psge
 
     B8 RecreatePipeline();
 
+    B8 CreateRenderingPipeline();
+
     B8 Resize();
 
     B8 BeginFrame(F64 _deltaTime);
@@ -108,6 +113,13 @@ namespace psge
      * @return B8 was the swapchain successfully recreated?
      */
     B8 RecreateSwapchain();
+
+    /**
+     * @brief Create the Vulkan buffers
+     * 
+     * @return B8 was the buffer creation successful?
+     */
+    B8 CreateBuffers();
 
     /**
      * @brief Get the required Vulkan Extensions, including validation layers
@@ -163,12 +175,23 @@ namespace psge
     /// @brief Unique pointer to the image swapchain
     std::shared_ptr<VulkanSwapchain> m_swapchain;
 
+    std::shared_ptr<RenderPipelineBase> m_renderPipeline;
+
     /// @brief A vector of graphics-related command buffers
     std::vector<VulkanCommandBuffer> m_graphicsCommandBuffers;
 
     /// @brief Custom memory allocator
     /// @todo: Create custom memory allocation, at least for tracking
     std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
+
+    /// @brief Vulkan vertex buffer
+    std::shared_ptr<VulkanBuffer> m_objectVertexBuffer;
+
+    /// @brief Vulkan index buffer
+    std::shared_ptr<VulkanBuffer> m_objectIndexBuffer;
+
+    U64 m_geometryVertexOffset;
+    U64 m_geometryIndexOffset;
 
     /// @brief Full name of the application (game)
     S16 m_applicationName;
