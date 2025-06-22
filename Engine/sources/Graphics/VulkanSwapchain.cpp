@@ -143,12 +143,6 @@ void VulkanSwapchain::CreateSwapchain()
     m_swapchainExtent.height = std::clamp(m_swapchainExtent.height, minExtent.height, maxExtent.height);
   }
 
-  // Return if the surface extent width doesn't agree with the screen extent
-  //if (m_swapchainExtent.width != m_extent.width || m_swapchainExtent.height != m_extent.height) {
-  //  std::cout << "NEEEEEEE" << std::endl;
-  //  m_swapchainInitialised = false;
-  //  return;
-  //}
 
   // Pick the image count
   U32 imageCount = surfaceCapabilities.minImageCount + 1;

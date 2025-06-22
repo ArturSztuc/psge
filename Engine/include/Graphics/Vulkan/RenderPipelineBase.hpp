@@ -7,6 +7,7 @@
 
 // internal includes
 #include "Core/Core.h"
+#include "Core/Assets/Mesh.hpp"
 #include "Graphics/VulkanDevice.hpp"
 #include "Graphics/VulkanRenderPass.hpp"
 
@@ -38,9 +39,21 @@ class RenderPipelineBase
 // public member functions
 public:
   RenderPipelineBase(std::shared_ptr<VulkanDevice> _vulkanDevice,
-                     std::shared_ptr<VulkanRenderPass> _vulkanRenderPass,
                      std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
-                     const std::map<ShaderType, S64>& _shaderLocations);
+                     std::map<ShaderType, S64>& _shaderLocations);
+  
+  void ConfigurePipeline(VkInstance _instance,
+                        std::shared_ptr<VulkanRenderPass> _renderPass,
+                        std::vector<VkVertexInputAttributeDescription> _attributes,
+                        std::vector<VkDescriptorSetLayout> _descriptorSetLayouts,
+                        VkViewport _viewport,
+                        VkRect2D _scissor,
+                        bool _isWireframe = false);
+
+  ~RenderPipelineBase();
+
+  B8 BindPipeline(VkCommandBuffer _commandBuffer,
+                  VkPipelineBindPoint _bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
 
 // private member functions
 private:
@@ -74,12 +87,19 @@ private:
   /// @brief Logical device pointer
   std::shared_ptr<VulkanDevice> m_device;
   /// @brief Pointer to the renderpass
-  std::shared_ptr<VulkanRenderPass> m_renderpass;
+  //std::shared_ptr<VulkanRenderPass> m_renderpass;
   /// @brief Pointer to the memory allocator
   std::shared_ptr<VkAllocationCallbacks> m_memoryAllocator;
 
+  /// @brief Vector of shader stages
+  std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
+
   /// @brief Internal vulkan pipeline
   VkPipeline m_pipeline;
+
+  /// @brief Vulkan pipeline layout
+  VkPipelineLayout m_pipelineLayout;
+
   /// @brief Number of shading stages
   U8 m_shaderCount;
 
