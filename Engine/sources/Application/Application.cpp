@@ -67,7 +67,7 @@ void Application::Run(bool _shouldRun)
     // Update the camera
     //UpdateCamera();
 
-    // Render the gmae
+    // Render the game
     RenderGame();
 
     LOGS_SAVE();

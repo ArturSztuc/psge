@@ -44,8 +44,10 @@ public:
   ~String();
 
   String& operator=(const String& other);
-
   bool operator==(const String& rhs) const;
+
+  String& operator+=(const String& rhs);
+  String& operator+=(const char* rhs);
 
   // Implicit conversion operator from const char* to String<template>
   operator const char* () const;

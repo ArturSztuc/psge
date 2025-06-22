@@ -144,6 +144,8 @@ public:
 
   VkSwapchainKHR GetSwapchain() { return m_swapchain; };
 
+  std::shared_ptr<VulkanRenderPass> GetRenderPass() { return m_renderpass; };
+
   B8 SwapchainInitialised() { return m_swapchainInitialised; };
 
 // private member functions

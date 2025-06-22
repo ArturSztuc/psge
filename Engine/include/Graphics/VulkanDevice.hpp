@@ -68,7 +68,7 @@ namespace psge
     VkCommandPool GetGraphicsCommandPool() {return m_graphicsCommandPool;}
     VkQueue GetGraphicsQueue() {return m_graphicsQueue;};
 
-    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
+    I32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties);
     
     /**
      * @brief Finds and loads all the physical device properties/features etc

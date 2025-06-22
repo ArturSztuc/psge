@@ -269,7 +269,7 @@ void VulkanDevice::FindDeviceProperties()
     LFATAL("Failed to find a supported device format");
 }
 
-U32 VulkanDevice::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties)
+I32 VulkanDevice::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
@@ -282,7 +282,7 @@ U32 VulkanDevice::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags _properti
   }
 
   LFATAL("Failed to find a suitable memory type!");
-  return 0;
+  return -1;
 }
 
 VkPresentModeKHR VulkanDevice::PickPresentMode()

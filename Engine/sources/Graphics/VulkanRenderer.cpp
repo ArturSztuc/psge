@@ -47,6 +47,13 @@ void VulkanRenderer::Destroy()
   // Wait for the device to become idle before destroying anything
   vkDeviceWaitIdle(*m_device->GetDevice());
 
+  LDEBUG("Shutting down Vulkan buffers");
+  m_objectVertexBuffer.reset();
+  m_objectIndexBuffer.reset();
+
+  LDEBUG("Shutting down Vulkan pipeline");
+  m_renderPipeline.reset();
+
   LDEBUG("Shutting down Vulkan command buffers");
   for (VulkanCommandBuffer& buf : m_graphicsCommandBuffers) {
     buf.Free(m_device.get(), m_device->GetGraphicsCommandPool());
@@ -87,15 +94,15 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
     return false;
   }
   // Check if we're in a process of making a swapchain
-  //if (m_recreatingSwapchain) {
-  //  LDEBUG("We're in m_RecreatingSwapchain mode, at the beginning of frame");
-  //  VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
-  //  if (result != VK_SUCCESS) {
-  //    LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
-  //    return false;
-  //  }
-  //  return false;
-  //}
+  if (m_recreatingSwapchain) {
+    LDEBUG("We're in m_RecreatingSwapchain mode, at the beginning of frame");
+    VkResult result = vkDeviceWaitIdle(*m_device->GetDevice());
+    if (result != VK_SUCCESS) {
+      LERROR("vkDeviceWaitIdle failed at BeginFrame with error: %s", string_VkResult(result));
+      return false;
+    }
+    return false;
+  }
 
   // Check if the framesize generation matches previous one
   if (m_frameSizeGeneration != m_frameLastSizeGeneration) {
@@ -202,6 +209,12 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
+  // Create Vulkan buffers
+  if (!CreateBuffers()) {
+    LFATAL("Failed to create vulkan buffers!");
+    return false;
+  }
+
   // Now the rendering engine is initialized
   m_initialized = true;
   return true;
@@ -282,9 +295,101 @@ B8 VulkanRenderer::RecreatePipeline()
     return false;
   }
 
+  if (!CreateRenderingPipeline()) {
+    LFATAL("Failed to create vulkan rendering pipeline!");
+    return false;
+  }
+
   m_recreatingSwapchain = false;
   return true;
 }
+
+B8 VulkanRenderer::CreateRenderingPipeline()
+{
+  std::map<ShaderType, S64> shaderLocations = {
+    {ShaderType::SHADER_TYPE_VERTEX, "shaders/BuiltIn.ObjectShader.vert.spv"},
+    {ShaderType::SHADER_TYPE_FRAGMENT, "shaders/BuiltIn.ObjectShader.frag.spv"},
+  };
+
+  m_renderPipeline = std::make_shared<RenderPipelineBase>(m_device, 
+                                                          m_memoryAllocator,
+                                                          shaderLocations);
+  if (!m_renderPipeline) {
+    LFATAL("Failed to create vulkan render pipeline!");
+    return false;
+  }
+
+  // Create the viewport
+  VkViewport viewport{};
+  viewport.x        = 0.0f;
+  viewport.y        = static_cast<F32>(m_extent.height);
+  viewport.width    = static_cast<F32>(m_extent.width);
+  viewport.height   = -static_cast<F32>(m_extent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  // Configure the pipeline
+  std::vector<VkVertexInputAttributeDescription> attributes = {
+    {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Mesh::Vertex3D, position)},
+  };
+
+  m_renderPipeline->ConfigurePipeline(m_instance,
+                                m_swapchain->GetRenderPass(),
+                                attributes,
+                                std::vector<VkDescriptorSetLayout>(),
+                                viewport,
+                                {0, 0, m_extent.width, m_extent.height},
+                                false);
+
+
+
+  LDEBUG("Vulkan render pipeline created successfully!");
+  return true;
+}
+
+B8 VulkanRenderer::CreateBuffers()
+{
+  LDEBUG("Creating Vulkan buffers...");
+  VkMemoryPropertyFlagBits memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+  // Create the vertex buffer
+  const U64 vertexBufferSize = sizeof(Mesh::Vertex3D) * 1024 * 1024;
+  m_geometryVertexOffset = 0;
+  m_objectVertexBuffer = std::make_shared<VulkanBuffer>(
+      m_device,
+      m_memoryAllocator,
+      vertexBufferSize,
+      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      memoryProperties, 
+      true
+  );
+
+  if (!m_objectVertexBuffer) {
+    LFATAL("Failed to create object vertex buffer!");
+    return false;
+  }
+
+  const U64 indexBufferSize = sizeof(U32) * 1024 * 1024;
+  m_objectIndexBuffer = std::make_shared<VulkanBuffer>(
+      m_device,
+      m_memoryAllocator,
+      indexBufferSize,
+      VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      memoryProperties,
+      true
+  );
+  m_geometryIndexOffset = 0;
+
+  if (!m_objectIndexBuffer) {
+    LFATAL("Failed to create object index buffer!");
+    return false;
+  }
+
+  LDEBUG("Vulkan buffers created successfully!");
+
+  return true;
+}
+
 
 void VulkanRenderer::ResizeWindow()
 {

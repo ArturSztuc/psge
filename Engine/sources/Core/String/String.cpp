@@ -39,6 +39,40 @@ bool String<MAX_LENGTH>::operator==(const String& rhs) const
   return Equals(rhs);
 }
 
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>::operator const char* () const
+{
+  return m_data;
+}
+
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>& String<MAX_LENGTH>::operator+=(const String& rhs)
+{
+  size_t new_length = m_length + rhs.Length();
+  if(new_length >= MAX_LENGTH)
+    new_length = MAX_LENGTH - 1;
+
+  memcpy(m_data + m_length, rhs.Data(), new_length - m_length);
+  m_data[new_length] = '\0';
+  m_length = new_length;
+
+  return *this;
+}
+
+template <size_t MAX_LENGTH>
+String<MAX_LENGTH>& String<MAX_LENGTH>::operator+=(const char* rhs)
+{
+  size_t rhs_length = strlen(rhs);
+  size_t new_length = m_length + rhs_length;
+  if(new_length >= MAX_LENGTH)
+    new_length = MAX_LENGTH - 1;
+
+  memcpy(m_data + m_length, rhs, new_length - m_length);
+  m_data[new_length] = '\0';
+  m_length = new_length;
+
+  return *this;
+}
 
 template <size_t MAX_LENGTH>
 String<MAX_LENGTH>::String(const char *str)
