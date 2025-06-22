@@ -52,8 +52,7 @@ public:
 
   ~RenderPipelineBase();
 
-  B8 BindPipeline(VkCommandBuffer _commandBuffer,
-                  VkPipelineBindPoint _bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
+  B8 BindPipeline(VkCommandBuffer _commandBuffer);
 
 // private member functions
 private:

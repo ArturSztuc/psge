@@ -270,15 +270,15 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
   LOGS_SAVE();
 }
 
-B8 RenderPipelineBase::BindPipeline(VkCommandBuffer _commandBuffer,
-                                    VkPipelineBindPoint _bindPoint)
+B8 RenderPipelineBase::BindPipeline(VkCommandBuffer _commandBuffer)
 {
+  VkPipelineBindPoint _bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
   vkCmdBindPipeline(_commandBuffer, _bindPoint, m_pipeline);
   if (m_pipeline == VK_NULL_HANDLE) {
     LERROR("Failed to bind pipeline, pipeline is null!");
     return false;
   }
-  LDEBUG("Bound pipeline of type %d", static_cast<int>(_bindPoint));
   return true;
 }
 

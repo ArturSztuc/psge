@@ -139,6 +139,11 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
   // Begin the renderpass
   m_swapchain->BeginRenderpass(commandBuffer, m_imageIndex);
 
+  if(!m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer())) {
+    LERROR("Failed to bind the rendering pipeline!");
+    return false;
+  }
+
   return true;
 }
 
