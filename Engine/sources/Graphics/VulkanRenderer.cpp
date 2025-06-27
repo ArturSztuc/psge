@@ -144,28 +144,6 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
     return false;
   }
 
-  // TODO:Temporary test code, remove later
-  VkDeviceSize offsets[1] = {0};
-  VkBuffer vertexBuffers[1] = {m_objectVertexBuffer->GetBuffer()};
-  vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(),
-                         0,
-                         1,
-                         vertexBuffers,
-                         offsets);
-
-  vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(),
-                       m_objectIndexBuffer->GetBuffer(),
-                       0,
-                       VK_INDEX_TYPE_UINT32);
-
-  vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(),
-                   6, // Number of indices to draw
-                   1, // Number of instances to draw
-                   0, // First index to draw
-                   0, // Vertex offset
-                   0); // First instance to draw
-  // TODO: end of temporary test code
-
   return true;
 }
 
@@ -201,6 +179,48 @@ void VulkanRenderer::UploadDataRange(VkCommandPool _commandPool,
                           _offset,
                           _offset,
                           _size);
+}
+
+
+void VulkanRenderer::UpdateGlobalState(glm::mat4 _projectionMatrix,
+                                       glm::mat4 _viewMatrix,
+                                       glm::vec3 _viewPosition,
+                                       glm::vec4 _ambientLightColor,
+                                       U32 _mode)
+{
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+  m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer());
+
+  m_renderPipeline->UpdateGlobalState(_projectionMatrix,
+                                      _viewMatrix,
+                                      _viewPosition,
+                                      _ambientLightColor,
+                                      m_imageIndex,
+                                      commandBuffer->GetCommandBuffer());
+
+
+  // TODO:Temporary test code, remove later
+  VkDeviceSize offsets[1] = {0};
+  VkBuffer vertexBuffers[1] = {m_objectVertexBuffer->GetBuffer()};
+  vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(),
+                         0,
+                         1,
+                         vertexBuffers,
+                         offsets);
+
+  vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(),
+                       m_objectIndexBuffer->GetBuffer(),
+                       0,
+                       VK_INDEX_TYPE_UINT32);
+
+  vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(),
+                   6, // Number of indices to draw
+                   1, // Number of instances to draw
+                   0, // First index to draw
+                   0, // Vertex offset
+                   0); // First instance to draw
+  // TODO: end of temporary test code
+
 }
 
 B8 VulkanRenderer::EndFrame(F64 _deltaTime)
@@ -331,7 +351,7 @@ B8 VulkanRenderer::RecreatePipeline()
     m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                     m_extent,
                                                     m_memoryAllocator,
-                                                    2);
+                                                    3);
   }
   else {
     vkDeviceWaitIdle(*m_device->GetDevice());
@@ -361,7 +381,7 @@ B8 VulkanRenderer::RecreatePipeline()
     m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                     m_extent,
                                                     m_memoryAllocator,
-                                                    2,
+                                                    3,
                                                     oldSwapchain->GetSwapchain());
 
     // Remove the swapchain if not initialised properly
@@ -408,6 +428,9 @@ B8 VulkanRenderer::CreateRenderingPipeline()
     return false;
   }
 
+  m_renderPipeline->ConfigureGlobalDescriptor(m_swapchain->GetImageCount());
+  
+  
   // Create the viewport
   VkViewport viewport{};
   viewport.x        = 0.0f;
@@ -423,12 +446,12 @@ B8 VulkanRenderer::CreateRenderingPipeline()
   };
 
   m_renderPipeline->ConfigurePipeline(m_instance,
-                                m_swapchain->GetRenderPass(),
-                                attributes,
-                                std::vector<VkDescriptorSetLayout>(),
-                                viewport,
-                                {0, 0, m_extent.width, m_extent.height},
-                                false);
+                                      m_swapchain->GetRenderPass(),
+                                      attributes,
+                                      m_swapchain->GetImageCount(),
+                                      viewport,
+                                      {0, 0, m_extent.width, m_extent.height},
+                                      false);
 
 
 

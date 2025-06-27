@@ -8,6 +8,7 @@
 
 #include "defines.h"
 #include "Core/Window/Window.hpp"
+#include "Graphics/FrameInfo.hpp"
 
 
 namespace psge
@@ -50,6 +51,13 @@ public:
   virtual B8 Initialize(RendererConfig& _config, Window* _window) = 0;
   virtual B8 Resize() = 0;
   virtual B8 BeginFrame(F64 _deltaTime) = 0;
+
+  virtual void UpdateGlobalState(glm::mat4 _projectionMatrix,
+                                 glm::mat4 _viewMatrix,
+                                 glm::vec3 _viewPosition,
+                                 glm::vec4 _ambientLightColor,
+                                 U32 _mode) = 0;
+
   virtual B8 EndFrame(F64 _deltaTime) = 0;
 };
 

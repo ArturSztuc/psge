@@ -11,6 +11,12 @@ namespace psge
       return false;
     }
 
+    UpdateGlobalState(glm::mat4(1.0f), // Projection matrix
+                      glm::mat4(1.0f), // View matrix
+                      glm::vec3(0.0f, 0.0f, 0.0f), // View position
+                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), // Ambient light color
+                      0); // Mode
+
     // Quit if mid-rendering fails, unlikely to recover from this
     if (!EndFrame(_deltaTime))
     {
