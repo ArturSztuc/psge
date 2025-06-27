@@ -10,6 +10,8 @@
 #include "Core/Assets/Mesh.hpp"
 #include "Graphics/VulkanDevice.hpp"
 #include "Graphics/VulkanRenderPass.hpp"
+#include "Graphics/VulkanBuffer.hpp"
+#include "Graphics/FrameInfo.hpp"
 
 namespace psge
 {
@@ -42,13 +44,31 @@ public:
                      std::shared_ptr<VkAllocationCallbacks> _memoryAllocator,
                      std::map<ShaderType, S64>& _shaderLocations);
   
+  /**
+   * @brief 
+   * 
+   * Creates a global descriptor set layout and pool for the global uniform
+   * object, used to pass global data to the shaders. That data includes things
+   * like the view matrix, projection matrix etc.
+   * 
+   * @param _inFlightFrames Number of frames in flight
+   */
+  void ConfigureGlobalDescriptor(U32 _inFlightFrames = 2);
+  
   void ConfigurePipeline(VkInstance _instance,
                         std::shared_ptr<VulkanRenderPass> _renderPass,
                         std::vector<VkVertexInputAttributeDescription> _attributes,
-                        std::vector<VkDescriptorSetLayout> _descriptorSetLayouts,
+                        U32 _inFlightFrames,
                         VkViewport _viewport,
                         VkRect2D _scissor,
                         bool _isWireframe = false);
+
+void UpdateGlobalState(glm::mat4 _projectionMatrix,
+                       glm::mat4 _viewMatrix,
+                       glm::vec3 _viewPosition,
+                       glm::vec4 _ambientLightColor,
+                       U32 _frameIndex,
+                       VkCommandBuffer _commandBuffer);
 
   ~RenderPipelineBase();
 
@@ -114,5 +134,22 @@ private:
   /// @brief Map of shader types to actual shaders
   std::map<ShaderType, VkShaderModule*> m_shaders;
 
+  /// @brief Vulkan descriptor pool for the global uniform object
+  VkDescriptorPool m_globalDescriptorPool;
+
+  /// @brief Vector of global descriptor sets
+  /// @note Each frame in flight will have its own descriptor set
+  std::vector<VkDescriptorSet> m_globalDescriptorSets;
+
+  /// @brief The global descriptor set layout
+  VkDescriptorSetLayout m_globalDescriptorSetLayout;
+
+  std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
+
+  /// @brief The global uniform object to pass the global data to the shaders
+  GlobalUniformObject m_ubo;
+
+  // global uniform buffer
+  std::shared_ptr<VulkanBuffer> m_globalUniformBuffer;
 };
 } // namespace psge
