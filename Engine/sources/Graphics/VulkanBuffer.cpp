@@ -140,7 +140,6 @@ namespace psge
   {
     vkUnmapMemory(*m_device->GetDevice(), m_memory);
     m_isLocked = false;
-    LDEBUG("Unlocked Vulkan buffer memory");
   }
 
   void VulkanBuffer::WriteToBuffer(const void* _data, VkDeviceSize _size, VkDeviceSize _offset)
