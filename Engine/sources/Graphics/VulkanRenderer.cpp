@@ -290,20 +290,36 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
+  if (!CreateRenderingPipeline()) {
+    LFATAL("Failed to create vulkan rendering pipeline!");
+    return false;
+  }
+
+
   // Create Vulkan buffers
   if (!CreateBuffers()) {
     LFATAL("Failed to create vulkan buffers!");
     return false;
   }
 
+  const F32 f = 10.f;
+
   // TODO: temporary test code, remove later
   const U32 vertexCount = 4;
   Mesh::Vertex3D vertices[vertexCount] = {
-    {{0.0f, -0.5f, 0.0f}},
+    {{-0.5f, -0.5f, 0.0f}},
     {{ 0.5f, 0.5f, 0.0f}},
-    {{ 0.0f,  0.5f, 0.0f}},
+    {{ -0.5f,  0.5f, 0.0f}},
     {{ 0.5f,  -0.5f, 0.0f}},
   };
+  vertices[0].position.x *= f;
+  vertices[0].position.y *= f;
+  vertices[1].position.x *= f;
+  vertices[1].position.y *= f;
+  vertices[2].position.x *= f;
+  vertices[2].position.y *= f;
+  vertices[3].position.x *= f;
+  vertices[3].position.y *= f;
 
   const U32 indexCount = 6;
   U32 indices[indexCount] = {0, 1, 2, 0, 3, 1};
@@ -401,11 +417,6 @@ B8 VulkanRenderer::RecreatePipeline()
   // Create the vulkan command buffers
   if (!CreateCommandBuffers()) {
     LFATAL("Failed to create vulkan renderbuffers!");
-    return false;
-  }
-
-  if (!CreateRenderingPipeline()) {
-    LFATAL("Failed to create vulkan rendering pipeline!");
     return false;
   }
 
