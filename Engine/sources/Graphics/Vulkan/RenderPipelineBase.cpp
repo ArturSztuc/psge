@@ -53,14 +53,6 @@ void RenderPipelineBase::UpdateGlobalState(glm::mat4 _projectionMatrix,
   m_ubo.view       = _viewMatrix;
 
   VkDescriptorSet descriptorSet = m_globalDescriptorSets[_frameIndex];
-  vkCmdBindDescriptorSets(_commandBuffer,
-                          VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          m_pipelineLayout,
-                          0,
-                          1,
-                          &descriptorSet,
-                          0,
-                          nullptr);
 
   // Configure the descriptors for the given frame index
   U32 range = sizeof(GlobalUniformObject);
@@ -95,6 +87,15 @@ void RenderPipelineBase::UpdateGlobalState(glm::mat4 _projectionMatrix,
                          &descriptorWrite,
                          0,
                          nullptr);
+
+  vkCmdBindDescriptorSets(_commandBuffer,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          m_pipelineLayout,
+                          0,
+                          1,
+                          &descriptorSet,
+                          0,
+                          nullptr);
 }
 
 B8 RenderPipelineBase::CreateVulkanPipeline(const std::map<ShaderType, S64>& _shaderLocations)
@@ -203,6 +204,7 @@ void RenderPipelineBase::ConfigureGlobalDescriptor(U32 _inFlightFrames)
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   poolInfo.poolSizeCount = 1;
   poolInfo.pPoolSizes    = &globalPoolSize;
   poolInfo.maxSets       = _inFlightFrames;
@@ -367,7 +369,7 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
   m_globalUniformBuffer = std::make_shared<VulkanBuffer>(
       m_device,
       m_memoryAllocator,
-      sizeof(GlobalUniformObject),
+      sizeof(GlobalUniformObject) * _inFlightFrames,
      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       true
