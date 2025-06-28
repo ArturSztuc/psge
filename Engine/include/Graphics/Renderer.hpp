@@ -10,7 +10,6 @@
 #include "Core/Window/Window.hpp"
 #include "Graphics/FrameInfo.hpp"
 
-
 namespace psge
 {
 
@@ -44,6 +43,10 @@ private:
   /* data */
   RendererType m_rendererType = RendererType::RENDERER_UNKNOWN;
   U64 m_renderFrameNumber = 0;
+
+protected:
+  /// @brief Shared pointer to the platform's window object
+  Window* m_window;
 
 public:
   B8 Render(F64 _deltaTime);

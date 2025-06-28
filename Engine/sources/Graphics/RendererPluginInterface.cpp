@@ -10,9 +10,28 @@ namespace psge
       LERROR("BeginFrame failed when calling Render. Shutting down");
       return false;
     }
+    WindowExtent extent = m_window->GetExtent();
+    F32 aspectRatio = static_cast<F32>(extent.width) / static_cast<F32>(extent.height);
 
-    UpdateGlobalState(glm::mat4(1.0f), // Projection matrix
-                      glm::mat4(1.0f), // View matrix
+    glm::mat4 projectionMatrix = glm::perspective(
+      glm::radians(45.0f), // Field of view in radians
+      aspectRatio,         // Aspect ratio
+      0.1f,               // Near plane
+      1000.0f              // Far plane
+    );
+
+    static F32 z = 1.0f;
+
+    glm::mat4 viewMatrix = glm::translate(
+      glm::mat4(1.0f), // Identity matrix
+      glm::vec3(0.0f, 0.0f, z) // Translate 5 units back along the Z-axis
+    );
+
+    z -= 0.01f;
+
+
+    UpdateGlobalState(projectionMatrix, // Projection matrix
+                      viewMatrix, // View matrix
                       glm::vec3(0.0f, 0.0f, 0.0f), // View position
                       glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), // Ambient light color
                       0); // Mode

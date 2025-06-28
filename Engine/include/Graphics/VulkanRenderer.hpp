@@ -232,9 +232,6 @@ namespace psge
     /// @brief Is the Vulkan debugging on?
     B8 m_usingValidationLayers;
 
-    /// @brief Shared pointer to the platform's window object
-    Window* m_window;
-
     /// @brief Window extent
     VkExtent2D m_extent;
 
