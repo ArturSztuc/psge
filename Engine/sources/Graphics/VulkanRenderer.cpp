@@ -139,7 +139,101 @@ B8 VulkanRenderer::BeginFrame(F64 _deltaTime)
   // Begin the renderpass
   m_swapchain->BeginRenderpass(commandBuffer, m_imageIndex);
 
+  if(!m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer())) {
+    LERROR("Failed to bind the rendering pipeline!");
+    return false;
+  }
+
   return true;
+}
+
+void VulkanRenderer::UploadDataRange(VkCommandPool _commandPool,
+                                     VkFence _fence,
+                                     VkQueue _queue,
+                                     std::shared_ptr<VulkanBuffer> _buffer,
+                                     U64 _size,
+                                     U64 _offset,
+                                     void* _data)
+{
+  VkBufferUsageFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  VulkanBuffer staging(m_device, 
+                       m_memoryAllocator, 
+                       _size, 
+                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+                       flags,
+                       true);
+  
+  if (staging.LockMemory(_size, _offset) != VK_SUCCESS) {
+    LFATAL("Failed to lock memory for uploading data to buffer!");
+    return;
+  }
+  staging.WriteToBuffer(_data,
+                        _size,
+                        _offset);
+  staging.UnlockMemory();
+
+  _buffer->CopyFromBuffer(staging,
+                          _commandPool,
+                          _fence,
+                          _queue,
+                          _offset,
+                          _offset,
+                          _size);
+}
+
+
+void VulkanRenderer::UpdateGlobalState(glm::mat4 _projectionMatrix,
+                                       glm::mat4 _viewMatrix,
+                                       glm::vec3 _viewPosition,
+                                       glm::vec4 _ambientLightColor,
+                                       U32 _mode)
+{
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+  m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer());
+
+  m_renderPipeline->UpdateGlobalState(_projectionMatrix,
+                                      _viewMatrix,
+                                      _viewPosition,
+                                      _ambientLightColor,
+                                      m_imageIndex,
+                                      commandBuffer->GetCommandBuffer());
+
+
+
+}
+
+void VulkanRenderer::UpdateObject(glm::mat4 _modelMatrix,
+                                  U32 _mode)
+{
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+  m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer());
+
+  // Update the model matrix for the object
+  m_renderPipeline->UpdateObject(_modelMatrix,
+                                 m_imageIndex,
+                                 commandBuffer->GetCommandBuffer());
+
+  // TODO:Temporary test code, remove later
+  VkDeviceSize offsets[1] = {0};
+  VkBuffer vertexBuffers[1] = {m_objectVertexBuffer->GetBuffer()};
+  vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(),
+                         0,
+                         1,
+                         vertexBuffers,
+                         offsets);
+
+  vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(),
+                       m_objectIndexBuffer->GetBuffer(),
+                       0,
+                       VK_INDEX_TYPE_UINT32);
+
+  vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(),
+                   6, // Number of indices to draw
+                   1, // Number of instances to draw
+                   0, // First index to draw
+                   0, // Vertex offset
+                   0); // First instance to draw
+  // TODO: end of temporary test code
 }
 
 B8 VulkanRenderer::EndFrame(F64 _deltaTime)
@@ -209,11 +303,55 @@ B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
     return false;
   }
 
+  if (!CreateRenderingPipeline()) {
+    LFATAL("Failed to create vulkan rendering pipeline!");
+    return false;
+  }
+
+
   // Create Vulkan buffers
   if (!CreateBuffers()) {
     LFATAL("Failed to create vulkan buffers!");
     return false;
   }
+
+  const F32 f = 10.f;
+
+  // TODO: temporary test code, remove later
+  const U32 vertexCount = 4;
+  Mesh::Vertex3D vertices[vertexCount] = {
+    {{-0.5f, -0.5f, 0.0f}},
+    {{ 0.5f, 0.5f, 0.0f}},
+    {{ -0.5f,  0.5f, 0.0f}},
+    {{ 0.5f,  -0.5f, 0.0f}},
+  };
+  vertices[0].position.x *= f;
+  vertices[0].position.y *= f;
+  vertices[1].position.x *= f;
+  vertices[1].position.y *= f;
+  vertices[2].position.x *= f;
+  vertices[2].position.y *= f;
+  vertices[3].position.x *= f;
+  vertices[3].position.y *= f;
+
+  const U32 indexCount = 6;
+  U32 indices[indexCount] = {0, 1, 2, 0, 3, 1};
+
+  UploadDataRange(m_device->GetGraphicsCommandPool(),
+                  0,
+                  m_device->GetGraphicsQueue(),
+                  m_objectVertexBuffer,
+                  sizeof(Mesh::Vertex3D) * vertexCount,
+                  0,
+                  vertices);
+
+  UploadDataRange(m_device->GetGraphicsCommandPool(),
+                  0,
+                  m_device->GetGraphicsQueue(),
+                  m_objectIndexBuffer,
+                  sizeof(U32) * indexCount,
+                  0,
+                  indices);
 
   // Now the rendering engine is initialized
   m_initialized = true;
@@ -242,7 +380,7 @@ B8 VulkanRenderer::RecreatePipeline()
     m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                     m_extent,
                                                     m_memoryAllocator,
-                                                    2);
+                                                    3);
   }
   else {
     vkDeviceWaitIdle(*m_device->GetDevice());
@@ -272,7 +410,7 @@ B8 VulkanRenderer::RecreatePipeline()
     m_swapchain = std::make_shared<VulkanSwapchain>(m_device.get(), 
                                                     m_extent,
                                                     m_memoryAllocator,
-                                                    2,
+                                                    3,
                                                     oldSwapchain->GetSwapchain());
 
     // Remove the swapchain if not initialised properly
@@ -295,11 +433,6 @@ B8 VulkanRenderer::RecreatePipeline()
     return false;
   }
 
-  if (!CreateRenderingPipeline()) {
-    LFATAL("Failed to create vulkan rendering pipeline!");
-    return false;
-  }
-
   m_recreatingSwapchain = false;
   return true;
 }
@@ -319,6 +452,9 @@ B8 VulkanRenderer::CreateRenderingPipeline()
     return false;
   }
 
+  m_renderPipeline->ConfigureGlobalDescriptor(m_swapchain->GetImageCount());
+  
+  
   // Create the viewport
   VkViewport viewport{};
   viewport.x        = 0.0f;
@@ -334,12 +470,12 @@ B8 VulkanRenderer::CreateRenderingPipeline()
   };
 
   m_renderPipeline->ConfigurePipeline(m_instance,
-                                m_swapchain->GetRenderPass(),
-                                attributes,
-                                std::vector<VkDescriptorSetLayout>(),
-                                viewport,
-                                {0, 0, m_extent.width, m_extent.height},
-                                false);
+                                      m_swapchain->GetRenderPass(),
+                                      attributes,
+                                      m_swapchain->GetImageCount(),
+                                      viewport,
+                                      {0, 0, m_extent.width, m_extent.height},
+                                      false);
 
 
 

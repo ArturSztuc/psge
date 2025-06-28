@@ -41,6 +41,77 @@ RenderPipelineBase::RenderPipelineBase(std::shared_ptr<VulkanDevice> _vulkanDevi
   CreateVulkanPipeline(_shaderLocations);
 }
 
+void RenderPipelineBase::UpdateGlobalState(glm::mat4 _projectionMatrix,
+                                           glm::mat4 _viewMatrix,
+                                           glm::vec3 _viewPosition,
+                                           glm::vec4 _ambientLightColor,
+                                           U32 _frameIndex,
+                                           VkCommandBuffer _commandBuffer)
+{
+
+  m_ubo.projection = _projectionMatrix;
+  m_ubo.view       = _viewMatrix;
+
+  VkDescriptorSet descriptorSet = m_globalDescriptorSets[_frameIndex];
+
+  // Configure the descriptors for the given frame index
+  U32 range = sizeof(GlobalUniformObject);
+  U64 offset = 0;
+
+  // Copy the global uniform object to the buffer
+  m_globalUniformBuffer->LockMemory(range, offset);
+  m_globalUniformBuffer->WriteToBuffer(&m_ubo,
+                                       range,
+                                       offset);
+  m_globalUniformBuffer->UnlockMemory();
+
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = m_globalUniformBuffer->GetBuffer();
+  bufferInfo.offset = offset;
+  bufferInfo.range  = range;
+
+  // Update the descriptor set
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.dstSet           = descriptorSet;
+  descriptorWrite.dstBinding       = 0;
+  descriptorWrite.dstArrayElement  = 0;
+  descriptorWrite.descriptorType   = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  descriptorWrite.descriptorCount  = 1;
+  descriptorWrite.pBufferInfo      = &bufferInfo;
+  descriptorWrite.pImageInfo       = nullptr;
+  descriptorWrite.pTexelBufferView = nullptr;
+
+  vkUpdateDescriptorSets(*m_device->GetDevice(),
+                         1,
+                         &descriptorWrite,
+                         0,
+                         nullptr);
+
+  vkCmdBindDescriptorSets(_commandBuffer,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          m_pipelineLayout,
+                          0,
+                          1,
+                          &descriptorSet,
+                          0,
+                          nullptr);
+}
+
+void RenderPipelineBase::UpdateObject(glm::mat4 _modelMatrix,
+                                      U32 _frameIndex,
+                                      VkCommandBuffer _commandBuffer)
+{
+  VkDescriptorSet descriptorSet = m_globalDescriptorSets[_frameIndex];
+
+  vkCmdPushConstants(_commandBuffer,
+                    m_pipelineLayout,
+                    VK_SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(glm::mat4),
+                    &_modelMatrix);
+}
+
 B8 RenderPipelineBase::CreateVulkanPipeline(const std::map<ShaderType, S64>& _shaderLocations)
 {
   // Load the shaders
@@ -117,11 +188,53 @@ B8 RenderPipelineBase::CreateVulkanPipeline(const std::map<ShaderType, S64>& _sh
   return true;
 }
 
+void RenderPipelineBase::ConfigureGlobalDescriptor(U32 _inFlightFrames)
+{
+  // Create global descriptor set layout
+  VkDescriptorSetLayoutBinding globalUboLayoutBinding{};
+  globalUboLayoutBinding.binding            = 0;
+  globalUboLayoutBinding.descriptorCount    = 1;
+  globalUboLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  globalUboLayoutBinding.pImmutableSamplers = nullptr;
+  globalUboLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
+
+  VkDescriptorSetLayoutCreateInfo globalLayoutInfo{};
+  globalLayoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  globalLayoutInfo.bindingCount = 1;
+  globalLayoutInfo.pBindings    = &globalUboLayoutBinding;
+
+  VK_CHECK(vkCreateDescriptorSetLayout(*m_device->GetDevice(),
+                                       &globalLayoutInfo,
+                                       m_memoryAllocator.get(),
+                                       &m_globalDescriptorSetLayout));
+
+  // Add the global descriptor set layout to the list of descriptor set layouts
+  m_descriptorSetLayouts.push_back(m_globalDescriptorSetLayout);
+
+  // Create the global descriptor set
+  VkDescriptorPoolSize globalPoolSize{};
+  globalPoolSize.type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  globalPoolSize.descriptorCount = _inFlightFrames;
+
+  VkDescriptorPoolCreateInfo poolInfo{};
+  poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+  poolInfo.poolSizeCount = 1;
+  poolInfo.pPoolSizes    = &globalPoolSize;
+  poolInfo.maxSets       = _inFlightFrames;
+
+  VK_CHECK(vkCreateDescriptorPool(*m_device->GetDevice(),
+                                   &poolInfo,
+                                   m_memoryAllocator.get(),
+                                   &m_globalDescriptorPool));
+  
+}
+
 
 void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
                         std::shared_ptr<VulkanRenderPass> _renderPass,
                         std::vector<VkVertexInputAttributeDescription> _attributes,
-                        std::vector<VkDescriptorSetLayout> _descriptorSetLayouts,
+                        U32 _inFlightFrames,
                         VkViewport _viewport,
                         VkRect2D _scissor,
                         bool _isWireframe)
@@ -218,19 +331,25 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+  // Push constant ranges
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  pushConstantRange.offset = sizeof(glm::mat4) * 0;
+  pushConstantRange.size = sizeof(glm::mat4) * 2; // 128 bytes for push constants
+
   // Pipeline layout
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = static_cast<U32>(_descriptorSetLayouts.size());
-  pipelineLayoutInfo.pSetLayouts = _descriptorSetLayouts.data();
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  pipelineLayoutInfo.setLayoutCount = static_cast<U32>(m_descriptorSetLayouts.size());
+  pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
   VK_CHECK(vkCreatePipelineLayout(*m_device->GetDevice(),
                                    &pipelineLayoutInfo,
                                    m_memoryAllocator.get(),
                                    &m_pipelineLayout));
 
-  LDEBUG("Pipeline layout created with %d descriptor set layouts", _descriptorSetLayouts.size());
+  LDEBUG("Pipeline layout created with %d descriptor set layouts", m_descriptorSetLayouts.size());
 
   // Create the graphics pipeline
   VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -258,8 +377,6 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
   pipelineInfo.basePipelineIndex = -1;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-  LDEBUG("About to create a graphics pipeline");
-  LOGS_SAVE();
   VK_CHECK(vkCreateGraphicsPipelines(*m_device->GetDevice(),
                                      VK_NULL_HANDLE,
                                      1,
@@ -267,31 +384,49 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
                                      m_memoryAllocator.get(),
                                      &m_pipeline));
   LDEBUG("Created a graphics pipeline");
-  LOGS_SAVE();
+   
+  // Create the global uniform buffer
+  m_globalUniformBuffer = std::make_shared<VulkanBuffer>(
+      m_device,
+      m_memoryAllocator,
+      sizeof(GlobalUniformObject) * _inFlightFrames,
+     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      true
+  );
+
+  // Allocate default descriptor set layouts
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts(_inFlightFrames,
+                                                          m_globalDescriptorSetLayout);
+  
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = m_globalDescriptorPool;
+  allocInfo.descriptorSetCount = _inFlightFrames;
+  allocInfo.pSetLayouts = descriptorSetLayouts.data();
+
+  m_globalDescriptorSets.resize(_inFlightFrames);
+  VK_CHECK(vkAllocateDescriptorSets(*m_device->GetDevice(),
+                                     &allocInfo,
+                                     m_globalDescriptorSets.data()));
+
 }
 
-B8 RenderPipelineBase::BindPipeline(VkCommandBuffer _commandBuffer,
-                                    VkPipelineBindPoint _bindPoint)
+B8 RenderPipelineBase::BindPipeline(VkCommandBuffer _commandBuffer)
 {
+  VkPipelineBindPoint _bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
   vkCmdBindPipeline(_commandBuffer, _bindPoint, m_pipeline);
   if (m_pipeline == VK_NULL_HANDLE) {
     LERROR("Failed to bind pipeline, pipeline is null!");
     return false;
   }
-  LDEBUG("Bound pipeline of type %d", static_cast<int>(_bindPoint));
   return true;
 }
 
 RenderPipelineBase::~RenderPipelineBase()
 {
-  // Destroy the shader modules
-  for (auto& shader : m_shaders) {
-    if (*shader.second) {
-      vkDestroyShaderModule(*m_device->GetDevice(), *shader.second, m_memoryAllocator.get());
-      *shader.second = VK_NULL_HANDLE;
-      LDEBUG("Destroyed shader module of type %d", static_cast<int>(shader.first));
-    }
-  }
+  m_globalUniformBuffer.reset();
 
   // Destroy the pipeline
   if (m_pipeline) {
@@ -304,6 +439,33 @@ RenderPipelineBase::~RenderPipelineBase()
     m_pipelineLayout = VK_NULL_HANDLE;
     LDEBUG("Destroyed pipeline layout");
   }
+
+  if (m_globalDescriptorPool) {
+    vkDestroyDescriptorPool(*m_device->GetDevice(),
+                            m_globalDescriptorPool,
+                            m_memoryAllocator.get());
+    m_globalDescriptorPool = VK_NULL_HANDLE;
+    LDEBUG("Destroyed global descriptor pool");
+  }
+
+  // Destroy the global descriptor pool
+  if (m_globalDescriptorSetLayout) {
+    vkDestroyDescriptorSetLayout(*m_device->GetDevice(),
+                                m_globalDescriptorSetLayout,
+                                m_memoryAllocator.get());
+    m_globalDescriptorSetLayout = VK_NULL_HANDLE;
+    LDEBUG("Destroyed global descriptor set layout");
+  }
+
+  // Destroy the shader modules
+  for (auto& shader : m_shaders) {
+    if (*shader.second) {
+      vkDestroyShaderModule(*m_device->GetDevice(), *shader.second, m_memoryAllocator.get());
+      *shader.second = VK_NULL_HANDLE;
+      LDEBUG("Destroyed shader module of type %d", static_cast<int>(shader.first));
+    }
+  }
+
 }
 
 std::vector<C8> RenderPipelineBase::ReadBinaryFile(const S64& _location)

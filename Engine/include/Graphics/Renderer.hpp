@@ -8,7 +8,7 @@
 
 #include "defines.h"
 #include "Core/Window/Window.hpp"
-
+#include "Graphics/FrameInfo.hpp"
 
 namespace psge
 {
@@ -44,12 +44,26 @@ private:
   RendererType m_rendererType = RendererType::RENDERER_UNKNOWN;
   U64 m_renderFrameNumber = 0;
 
+protected:
+  /// @brief Shared pointer to the platform's window object
+  Window* m_window;
+
 public:
   B8 Render(F64 _deltaTime);
   virtual ~Renderer(){};
   virtual B8 Initialize(RendererConfig& _config, Window* _window) = 0;
   virtual B8 Resize() = 0;
   virtual B8 BeginFrame(F64 _deltaTime) = 0;
+
+  virtual void UpdateGlobalState(glm::mat4 _projectionMatrix,
+                                 glm::mat4 _viewMatrix,
+                                 glm::vec3 _viewPosition,
+                                 glm::vec4 _ambientLightColor,
+                                 U32 _mode) = 0;
+
+  virtual void UpdateObject(glm::mat4 _modelMatrix,
+                            U32 _mode) = 0;
+
   virtual B8 EndFrame(F64 _deltaTime) = 0;
 };
 

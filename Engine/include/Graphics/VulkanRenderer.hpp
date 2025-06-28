@@ -27,6 +27,7 @@
 #include "Graphics/Renderer.hpp"
 #include "Graphics/RendererPluginInterface.hpp"
 
+#include "Graphics/FrameInfo.hpp"
 #include "Graphics/VulkanBuffer.hpp"
 #include "Graphics/VulkanDevice.hpp"
 #include "Graphics/VulkanRenderPass.hpp"
@@ -78,11 +79,30 @@ namespace psge
 
     B8 CreateRenderingPipeline();
 
+    B8 CreateShaders();
+
     B8 Resize();
 
     B8 BeginFrame(F64 _deltaTime);
 
     B8 EndFrame(F64 _deltaTime);
+
+    void UpdateGlobalState(glm::mat4 _projectionMatrix,
+                           glm::mat4 _viewMatrix,
+                           glm::vec3 _viewPosition,
+                           glm::vec4 _ambientLightColor,
+                           U32 _mode);
+
+    void UpdateObject(glm::mat4 _modelMatrix,
+                      U32 _mode);
+
+    void UploadDataRange(VkCommandPool _commandPool,
+                         VkFence _fence,
+                         VkQueue _queue,
+                         std::shared_ptr<VulkanBuffer> _buffer,
+                         U64 _size,
+                         U64 _offset,
+                         void* _data);
 
   // private member functions
   private:
@@ -193,6 +213,7 @@ namespace psge
     U64 m_geometryVertexOffset;
     U64 m_geometryIndexOffset;
 
+
     /// @brief Full name of the application (game)
     S16 m_applicationName;
 
@@ -213,9 +234,6 @@ namespace psge
 
     /// @brief Is the Vulkan debugging on?
     B8 m_usingValidationLayers;
-
-    /// @brief Shared pointer to the platform's window object
-    Window* m_window;
 
     /// @brief Window extent
     VkExtent2D m_extent;
