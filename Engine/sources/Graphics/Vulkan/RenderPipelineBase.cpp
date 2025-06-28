@@ -98,6 +98,20 @@ void RenderPipelineBase::UpdateGlobalState(glm::mat4 _projectionMatrix,
                           nullptr);
 }
 
+void RenderPipelineBase::UpdateObject(glm::mat4 _modelMatrix,
+                                      U32 _frameIndex,
+                                      VkCommandBuffer _commandBuffer)
+{
+  VkDescriptorSet descriptorSet = m_globalDescriptorSets[_frameIndex];
+
+  vkCmdPushConstants(_commandBuffer,
+                    m_pipelineLayout,
+                    VK_SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(glm::mat4),
+                    &_modelMatrix);
+}
+
 B8 RenderPipelineBase::CreateVulkanPipeline(const std::map<ShaderType, S64>& _shaderLocations)
 {
   // Load the shaders
@@ -317,13 +331,19 @@ void RenderPipelineBase::ConfigurePipeline(VkInstance _instance,
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+  // Push constant ranges
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  pushConstantRange.offset = sizeof(glm::mat4) * 0;
+  pushConstantRange.size = sizeof(glm::mat4) * 2; // 128 bytes for push constants
+
   // Pipeline layout
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = static_cast<U32>(m_descriptorSetLayouts.size());
   pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
   VK_CHECK(vkCreatePipelineLayout(*m_device->GetDevice(),
                                    &pipelineLayoutInfo,
                                    m_memoryAllocator.get(),

@@ -63,12 +63,16 @@ public:
                         VkRect2D _scissor,
                         bool _isWireframe = false);
 
-void UpdateGlobalState(glm::mat4 _projectionMatrix,
-                       glm::mat4 _viewMatrix,
-                       glm::vec3 _viewPosition,
-                       glm::vec4 _ambientLightColor,
-                       U32 _frameIndex,
-                       VkCommandBuffer _commandBuffer);
+  void UpdateGlobalState(glm::mat4 _projectionMatrix,
+                         glm::mat4 _viewMatrix,
+                         glm::vec3 _viewPosition,
+                         glm::vec4 _ambientLightColor,
+                         U32 _frameIndex,
+                         VkCommandBuffer _commandBuffer);
+
+  void UpdateObject(glm::mat4 _modelMatrix,
+                    U32 _frameIndex,
+                    VkCommandBuffer _commandBuffer);
 
   ~RenderPipelineBase();
 

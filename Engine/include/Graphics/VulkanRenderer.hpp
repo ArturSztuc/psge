@@ -93,6 +93,9 @@ namespace psge
                            glm::vec4 _ambientLightColor,
                            U32 _mode);
 
+    void UpdateObject(glm::mat4 _modelMatrix,
+                      U32 _mode);
+
     void UploadDataRange(VkCommandPool _commandPool,
                          VkFence _fence,
                          VkQueue _queue,

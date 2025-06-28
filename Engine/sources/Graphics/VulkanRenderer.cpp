@@ -199,6 +199,20 @@ void VulkanRenderer::UpdateGlobalState(glm::mat4 _projectionMatrix,
                                       commandBuffer->GetCommandBuffer());
 
 
+
+}
+
+void VulkanRenderer::UpdateObject(glm::mat4 _modelMatrix,
+                                  U32 _mode)
+{
+  VulkanCommandBuffer* commandBuffer = &m_graphicsCommandBuffers[m_imageIndex];
+  m_renderPipeline->BindPipeline(commandBuffer->GetCommandBuffer());
+
+  // Update the model matrix for the object
+  m_renderPipeline->UpdateObject(_modelMatrix,
+                                 m_imageIndex,
+                                 commandBuffer->GetCommandBuffer());
+
   // TODO:Temporary test code, remove later
   VkDeviceSize offsets[1] = {0};
   VkBuffer vertexBuffers[1] = {m_objectVertexBuffer->GetBuffer()};
@@ -220,7 +234,6 @@ void VulkanRenderer::UpdateGlobalState(glm::mat4 _projectionMatrix,
                    0, // Vertex offset
                    0); // First instance to draw
   // TODO: end of temporary test code
-
 }
 
 B8 VulkanRenderer::EndFrame(F64 _deltaTime)

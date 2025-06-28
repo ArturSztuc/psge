@@ -61,6 +61,9 @@ public:
                                  glm::vec4 _ambientLightColor,
                                  U32 _mode) = 0;
 
+  virtual void UpdateObject(glm::mat4 _modelMatrix,
+                            U32 _mode) = 0;
+
   virtual B8 EndFrame(F64 _deltaTime) = 0;
 };
 

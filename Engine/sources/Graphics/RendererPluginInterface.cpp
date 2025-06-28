@@ -20,21 +20,28 @@ namespace psge
       1000.0f              // Far plane
     );
 
-    static F32 z = 1.0f;
 
+    static F32 z = 0.0f;
     glm::mat4 viewMatrix = glm::translate(
-      glm::mat4(1.0f), // Identity matrix
-      glm::vec3(0.0f, 0.0f, z) // Translate 5 units back along the Z-axis
+      glm::mat4(1.0f),
+      glm::vec3(0.0f, 0.0f, z) // 30.0f
     );
+    z += 0.01f;
 
-    z -= 0.01f;
-
+    viewMatrix = glm::inverse(viewMatrix); // Invert the view matrix for correct rendering
 
     UpdateGlobalState(projectionMatrix, // Projection matrix
                       viewMatrix, // View matrix
                       glm::vec3(0.0f, 0.0f, 0.0f), // View position
                       glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), // Ambient light color
                       0); // Mode
+    
+    static F32 rotationAngle = 0.0f;
+    // Update the object with a model matrix
+    glm::mat4 modelMatrix = glm::mat4(1.0f); // Identity matrix
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate around Y-axis
+    UpdateObject(modelMatrix, 0); // Mode is 0 for now
+    rotationAngle += 0.01f; // Increment the rotation angle
 
     // Quit if mid-rendering fails, unlikely to recover from this
     if (!EndFrame(_deltaTime))
