@@ -4,6 +4,12 @@
 
 #include "Core/Assets/Mesh.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_FORCE_RADIANS
+
 struct GlobalUniformObject
 {
   glm::mat4 projection; 
