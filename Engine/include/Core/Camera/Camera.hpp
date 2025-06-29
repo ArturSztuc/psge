@@ -99,10 +99,35 @@ public:
                        F32 _farPlane);
 
     /**
-     * @brief Sets the camera translation
+     * @brief Sets the camera position
+     * 
      * @param _position Camera position in world space
      */
-    void SetCameraTranslation(const glm::vec3& _position);
+    void SetCameraPosition(const glm::vec3& _position);
+
+    void UpdateCamera();
+
+    /**
+     * @brief Set the Camera Yaw
+     * 
+     * Modifies the camera's yaw, rotation around the Y-axis (looking left and
+     * right)
+     * 
+     * @param _yawAmount The amount to change the yaw by
+     */
+    void SetCameraYaw(F32 _yawAmount);
+
+    /**
+     * @brief Set the Camera Pitch
+     * 
+     * Modifies the camera's pitch, rotation around the X-axis (looking up and
+     * down)
+     * 
+     * @param _pitchAmount  The amount to change the pitch by
+     */
+    void SetCameraPitch(F32 _pitchAmount);
+
+    void MoveCameraPosition(const glm::vec3& _position);
 
     const glm::mat4& GetViewMatrix() const { return m_viewMatrix; }
     const glm::mat4& GetProjectionMatrix() const { return m_projectionMatrix; }
@@ -110,6 +135,7 @@ public:
 
     const glm::vec3 GetPosition() const { return glm::vec3(m_inverseViewMatrix[3]); }
 
+    const glm::vec3 GetEuler() const { return m_euler; }
 
 private:
   /// @brief The view matrix of the camera
@@ -132,5 +158,8 @@ private:
 
   /// @brief The direction of the camera in world space
   glm::vec3 m_euler;
+
+  /// @brief Flag to indicate if the camera needs to be updated
+  B8 m_needsUpdate;
 };
 };
