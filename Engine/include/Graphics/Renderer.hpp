@@ -8,7 +8,10 @@
 
 #include "defines.h"
 #include "Core/Window/Window.hpp"
+#include "Core/Camera/Camera.hpp"
 #include "Graphics/FrameInfo.hpp"
+
+#include <memory>
 
 namespace psge
 {
@@ -48,10 +51,16 @@ protected:
   /// @brief Shared pointer to the platform's window object
   Window* m_window;
 
+  /// @brief Shared pointer to the camera
+  std::shared_ptr<Camera> m_camera;
+
 public:
   B8 Render(F64 _deltaTime);
   virtual ~Renderer(){};
-  virtual B8 Initialize(RendererConfig& _config, Window* _window) = 0;
+  virtual B8 Initialize(RendererConfig& _config,
+                        Window* _window,
+                        std::shared_ptr<Camera> _camera) = 0;
+
   virtual B8 Resize() = 0;
   virtual B8 BeginFrame(F64 _deltaTime) = 0;
 
