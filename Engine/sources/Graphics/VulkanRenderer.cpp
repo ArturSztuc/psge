@@ -255,10 +255,12 @@ B8 VulkanRenderer::EndFrame(F64 _deltaTime)
   return true;
 }
 
-B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window)
+B8 VulkanRenderer::Initialize(RendererConfig& _config, Window* _window, std::shared_ptr<Camera> _camera)
 {
   /// @todo Make shared throughout application!
   m_window = _window;
+
+  m_camera = _camera;
 
   // Set the application and engine/renderer names
   m_applicationName = _config.m_applicationName;
@@ -374,6 +376,8 @@ B8 VulkanRenderer::RecreatePipeline()
   }
   m_extent.width = wextent.width;
   m_extent.height= wextent.height;
+
+  m_camera->SetPerspectiveProjection(45.0f, m_window->GetAspectRatio());
 
   // Create the swapchain
   if (!m_swapchain) {

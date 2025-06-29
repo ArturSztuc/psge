@@ -49,6 +49,15 @@ void KeyboardSystem::SetKeyboardCallback(Window* _window)
 #endif
 }
 
+B8 KeyboardSystem::IsKeyPressed(Window* _window, KeyboardKeyCode _key)
+{
+#if defined(PLATFORM_WINDOW_GLFW)
+  if (glfwGetKey(_window->GetWindow(), static_cast<int>(_key)) == GLFW_PRESS) {
+    return true;
+  }
+#endif
+  return false;
+}
 
 void KeyboardSystem::PollKeyboardEvents()
 {

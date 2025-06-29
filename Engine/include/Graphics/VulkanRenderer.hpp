@@ -21,6 +21,7 @@
 
 // internal includes
 #include "Core/Core.h"
+#include "Core/Camera/Camera.hpp"
 #include "Core/PluginSystem/PluginInterface.hpp"
 #include "Core/Window/Window.hpp"
 
@@ -73,7 +74,9 @@ namespace psge
 
     S32 GetPluginInterfaceName();
 
-    B8 Initialize(RendererConfig& _config, Window* _window);
+    B8 Initialize(RendererConfig& _config,
+                  Window* _window,
+                  std::shared_ptr<Camera> _camera) override;
 
     B8 RecreatePipeline();
 

@@ -26,6 +26,8 @@ void Application::Configure()
   LOG_NEW("global", LOG_LEVEL_TRACE, std::string(m_config->Get<std::string>("log_location")) + "global_log.txt");
 
   CreateWindow();
+
+  CreateCamera();
 }
 
 void Application::CreateWindow()
@@ -33,6 +35,11 @@ void Application::CreateWindow()
   m_window = new Window(m_config->Get<std::string>("game_title", "DefaultName"),
                         m_config->Get<int>("window_width", 800),
                         m_config->Get<int>("window_height", 600));
+}
+
+void Application::CreateCamera()
+{
+  m_camera = std::make_shared<Camera>(0.1f, 1000.0f);
 }
 
 Application::~Application()
@@ -63,9 +70,6 @@ void Application::Run(bool _shouldRun)
 
     // Update game state
     UpdateGameState();
-
-    // Update the camera
-    //UpdateCamera();
 
     // Render the game
     RenderGame();
@@ -103,7 +107,7 @@ void Application::InitializeRenderer()
   config.m_applicationName = (m_config->Get<std::string>("game_title")).data();
 
   m_renderer = std::make_unique<VulkanRenderer>();
-  m_renderer->Initialize(config, m_window);
+  m_renderer->Initialize(config, m_window, m_camera);
 }
 
 void Application::LoadPlugins()

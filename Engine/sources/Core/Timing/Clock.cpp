@@ -20,7 +20,9 @@ void Clock::ResetClock()
 F64 Clock::ElapsedFrame()
 {
   auto endTime = ChronoClock::now();
-  return std::chrono::duration<F64>(endTime - m_startTimeFrame).count();
+  F64 elapsed = std::chrono::duration<F64>(endTime - m_startTimeFrame).count();
+  ResetFrame();
+  return elapsed;
 };
 
 F64 Clock::Elapsed()
