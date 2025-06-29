@@ -116,6 +116,11 @@ protected:
   void CreateWindow();
 
   /**
+   * @brief Create a Camera object
+   */
+  void CreateCamera();
+
+  /**
    * @brief Loads and selects the plugins based on our config
    */
   void LoadPlugins();
@@ -156,6 +161,9 @@ protected:
 
   /// Stores the window to render the game upon
   Window* m_window;
+
+  /// Stores the camera object
+  std::shared_ptr<Camera> m_camera;
 
   //Renderer* m_renderer;
   std::unique_ptr<Renderer> m_renderer;
