@@ -60,6 +60,8 @@ public:
 
   WindowExtent GetExtent() {return m_extent;};
 
+  F32 GetAspectRatio() {return static_cast<F32>(m_extent.width) / static_cast<F32>(m_extent.height);}
+
 // private member functions
 private:
   /// Function callback to resize the window
@@ -74,11 +76,6 @@ private:
   PlatformWindow* m_window;
 
   WindowExtent m_extent;
-  ///// Window width
-  //unsigned int m_width;
-
-  ///// Window height
-  //unsigned int m_height;
 
   /// Was the frame recently resized?
   B8 m_frameBufferResized = false;
