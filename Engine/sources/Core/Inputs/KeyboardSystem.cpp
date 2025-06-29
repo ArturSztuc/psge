@@ -41,6 +41,11 @@ void KeyboardSystem::Update(F32 _deltaTime)
   PollKeyboardEvents();
 }
 
+B8 KeyboardSystem::IsKeyPressed(KeyboardKeyCode _key)
+{
+  return IsKeyPressed(m_window, _key);
+}
+
 void KeyboardSystem::Shutdown()
 {
 

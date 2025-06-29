@@ -24,11 +24,22 @@
 enum KeyboardKeyCode
 {
   KEY_NULL = -1,
+
   KEY_ESC = GLFW_KEY_ESCAPE,
+  KEY_SPACE = GLFW_KEY_SPACE,
+
   KEY_W   = GLFW_KEY_W,
   KEY_S   = GLFW_KEY_S,
   KEY_A   = GLFW_KEY_A,
-  KEY_D   = GLFW_KEY_D
+  KEY_D   = GLFW_KEY_D,
+  KEY_Q   = GLFW_KEY_Q,
+  KEY_E   = GLFW_KEY_E,
+  KEY_X = GLFW_KEY_X,
+
+  KEY_LEFT  = GLFW_KEY_LEFT,
+  KEY_RIGHT = GLFW_KEY_RIGHT,
+  KEY_UP    = GLFW_KEY_UP,
+  KEY_DOWN  = GLFW_KEY_DOWN,
 };
 
 /**
@@ -64,6 +75,8 @@ public:
   /// Polls the window keyboard events
   void Update(F32 _deltaTime);
 
+  B8 IsKeyPressed(KeyboardKeyCode _key);
+
   /// Shuts the KeyboardSystem down
   void Shutdown();
 
@@ -73,6 +86,8 @@ private:
 
   /// Platform abstrction for setting the Keyboard callback
   void SetKeyboardCallback(Window* _window);
+
+  B8 IsKeyPressed(Window* m_window, KeyboardKeyCode _key);
 
   /// Platform abstraction for polling for the keyboard events
   void PollKeyboardEvents();
